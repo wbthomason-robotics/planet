@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+# Idea due to Neil Dantam in https://github.com/golems/amino
+
+import os
+import sys
+
+import bpy
+
+bpy.ops.object.mode_set(mode='OBJECT')
+bpy.ops.object.select_by_type(type='MESH')
+bpy.ops.object.delete(use_global=False)
+
+for item in bpy.data.meshes:
+  bpy.data.meshes.remove(item)
+
+INFILE_INDEX = -3
+OUTFILE_INDEX = -1
+
+_, filetype = os.path.splitext(sys.argv[INFILE_INDEX])
+filetype = filetype.lower()
+
+if filetype == '.dae':
+  bpy.ops.wm.collada_import(filepath=sys.argv[INFILE_INDEX])
+elif filetype == '.stl':
+  bpy.ops.import_mesh.stl(filepath=sys.argv[INFILE_INDEX])
+elif filetype == '.wrl':
+  bpy.ops.import_scene.x3d(filepath=sys.argv[INFILE_INDEX])
+elif filetype == '.obj':
+  bpy.ops.import_scene.obj(filepath=sys.argv[INFILE_INDEX], axis_forward='-Y', axis_up='Z')
+else:
+  raise Exception(f"Don't know how to convert {filetype} files")
+
+# TODO: If models are converted incorrectly, maybe the default axis settings aren't enough
+bpy.ops.export_scene.obj(
+    filepath=sys.argv[OUTFILE_INDEX],
+    axis_up='Z',
+    axis_forward='X',
+    use_normals=True,
+    use_triangles=True)
