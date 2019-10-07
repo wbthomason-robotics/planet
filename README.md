@@ -19,7 +19,7 @@ running, follow these steps:
       of the definitions in this code. This will be fixed once OMPL builds with the latest Boost
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
-  - ['fmt`](https://github.com/fmtlib/fmt)
+  - [`fmt`](https://github.com/fmtlib/fmt)
   - [`sexpresso`](https://github.com/BitPuffin/sexpresso)
   - [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
   - [`ompl`](https://ompl.kavrakilab.org/)
