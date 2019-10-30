@@ -1,0 +1,30 @@
+[submodule "lib/FunctionalPlus"]
+	path = lib/FunctionalPlus
+	url = git://github.com/Dobiasd/FunctionalPlus.git
+[submodule "lib/cpptoml"]
+	path = lib/cpptoml
+	url = git://github.com/skystrife/cpptoml.git
+[submodule "lib/hopscotch-map"]
+	path = lib/hopscotch-map
+	url = git://github.com/Tessil/hopscotch-map.git
+[submodule "lib/optim"]
+	path = lib/optim
+	url = git://github.com/kthohr/optim.git
+[submodule "lib/robin-map"]
+	path = lib/robin-map
+	url = git://github.com/Tessil/robin-map.git
+[submodule "lib/sexpresso"]
+	path = lib/sexpresso
+	url = git://github.com/BitPuffin/sexpresso.git
+[submodule "lib/tinyobjloader"]
+	path = lib/tinyobjloader
+	url = git://github.com/syoyo/tinyobjloader.git
+[submodule "lua/libs/sci"]
+	path = lua/libs/sci
+	url = git://github.com/stepelu/lua-sci.git
+[submodule "lua/libs/xsys"]
+	path = lua/libs/xsys
+	url = git://github.com/stepelu/lua-xsys.git
+[submodule "lua/libs/sci-lang"]
+	path = lua/libs/sci-lang
+	url = git://github.com/stepelu/lua-sci-lang.git
