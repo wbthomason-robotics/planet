@@ -16,7 +16,8 @@ running, follow these steps:
   - [`spdlog`](https://github.com/gabime/spdlog)
   - [`boost`](https://www.boost.org/)
     - Note that things will break right now with Boost 1.70; it doesn't play nice with OMPL or one
-      of the definitions in this code. This will be fixed once OMPL builds with the latest Boost
+      of the definitions in this code. This will be fixed once OMPL builds with the latest Boost (in
+      version 1.5.0, per https://github.com/ompl/ompl/issues/681
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
   - [`fmt`](https://github.com/fmtlib/fmt)
