@@ -9,7 +9,8 @@ Planning](https://wbthomason.github.io/papers/isrr2019_unifiedtamp.pdf).
 This code is designed to be easy (relative to other research code) to install and use. To get it
 running, follow these steps:
 
-1. Install the following dependencies:
+1. Install the following dependencies (except those marked as submodules, which are included only
+   for completeness):
   - [`meson`](https://mesonbuild.com/)
   - [`luajit`](https://luajit.org/)
   - A reasonable C++17 compiler (this was built using Clang++ 8.0.1)
@@ -21,11 +22,13 @@ running, follow these steps:
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
   - [`fmt`](https://github.com/fmtlib/fmt)
-  - [`sexpresso`](https://github.com/BitPuffin/sexpresso)
-  - [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
+  - (submodule) [`sexpresso`](https://github.com/BitPuffin/sexpresso)
+    - Note that you'll need to build the project to generate `libsexpresso.o` for linking
+  - (submodule) [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
+      - You'll need to build this project too
   - [`ompl`](https://ompl.kavrakilab.org/)
   - [`bullet`](https://github.com/bulletphysics/bullet3)
-  - [`OptimLib`](https://github.com/kthohr/optim)
+  - (submodule) [`OptimLib`](https://github.com/kthohr/optim)
     - Note that this dependency will be changing to `nlopt` soon...
   - [`urdf`](https://github.com/ros/urdfdom)
   - [`tinyxml2`](https://github.com/leethomason/tinyxml2)
