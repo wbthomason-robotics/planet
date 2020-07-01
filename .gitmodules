@@ -25,3 +25,6 @@
 [submodule "lua/libs/sci-lang"]
 	path = lua/libs/sci-lang
 	url = git://github.com/stepelu/lua-sci-lang.git
+[submodule "lua/libs/sci"]
+	path = lua/libs/sci
+	url = https://github.com/wbthomason-robotics/lua-sci
