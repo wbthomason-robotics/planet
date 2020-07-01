@@ -1,0 +1,2 @@
+option('profile', type: 'boolean', value: false)
+option('log_actions', type: 'feature', value: 'disabled')
