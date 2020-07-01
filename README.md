@@ -9,26 +9,22 @@ Planning](https://wbthomason.github.io/papers/isrr2019_unifiedtamp.pdf).
 This code is designed to be easy (relative to other research code) to install and use. To get it
 running, follow these steps:
 
-1. Install the following dependencies (except those marked as submodules, which are included only
-   for completeness):
+1. Install the following dependencies:
   - [`meson`](https://mesonbuild.com/)
   - [`luajit`](https://luajit.org/)
   - A reasonable C++17 compiler (this was built using Clang++ 8.0.1)
   - [`spdlog`](https://github.com/gabime/spdlog)
   - [`boost`](https://www.boost.org/)
     - Note that things will break right now with Boost 1.70; it doesn't play nice with OMPL or one
-      of the definitions in this code. This will be fixed once OMPL builds with the latest Boost (in
-      version 1.5.0, per https://github.com/ompl/ompl/issues/681)
+      of the definitions in this code. This will be fixed once OMPL builds with the latest Boost
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
   - [`fmt`](https://github.com/fmtlib/fmt)
-  - (submodule) [`sexpresso`](https://github.com/BitPuffin/sexpresso)
-    - Note that you'll need to build the project to generate `libsexpresso.o` for linking
-  - (submodule) [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
-      - You'll need to build this project too
+  - [`sexpresso`](https://github.com/BitPuffin/sexpresso)
+  - [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
   - [`ompl`](https://ompl.kavrakilab.org/)
   - [`bullet`](https://github.com/bulletphysics/bullet3)
-  - (submodule) [`OptimLib`](https://github.com/kthohr/optim)
+  - [`OptimLib`](https://github.com/kthohr/optim)
     - Note that this dependency will be changing to `nlopt` soon...
   - [`urdf`](https://github.com/ros/urdfdom)
   - [`tinyxml2`](https://github.com/leethomason/tinyxml2)
@@ -53,12 +49,26 @@ some example predicate semantics implementations, and replace the PDDL files wit
 In general: run `./planet <YOUR PROBLEM CONFIG.toml>`. Look at the `.toml` files in this repo for
 examples.
 
+You can use `./planet --help` to see flags to control execution. In particular, `-g`/`--greedy` uses
+best-first action selection (rather than prioritized sampling), which can lead to speedups for some
+problems.
+
 ### Helpful tips for running on your own problems
 
 - You must annotate discrete predicates as `:discrete`, and kinematics-altering predicates (see paper for explanation) as `:kinematic`.
 - We use LuaJit 2.0.5, which is compatible with Lua 5.1
 - Your parameters to actions and predicates (and, correspondingly, their usage in preconditions and effects for actions) *must* be valid Lua variable names.
 - Continuous (i.e. non-discrete & non-kinematic) predicates are assumed to have a Lua function definition with the same name as the predicate in your domain semantics file.
-- Continuous predicate definitions can only (as of now) use the operator functions `eq`, `And`, `Or`, `Not`,
+- Continuous predicate definitions can only (as of now) use the operator functions `eq`, `And`, `Or`,
   `le`, `ge`, `lt`, `gt`, and basic math operators (note that if a math operator has an overloaded operator
   function you need to use the overloaded version)
+
+## Status
+
+Planet is usable as a proof of concept. No claims are made about the quality of engineering,
+performance, etc. Use at your own risk.
+
+## TODO
+- [ ] Remove need for `sci-lua`/generally simplify Lua dependencies.
+- [ ] Implement syntactic transformation for handling negation
+- [ ] Profiling/rewrites for performance improvements
