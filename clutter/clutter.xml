@@ -1,0 +1,644 @@
+<problem>
+  <objects>
+
+    <obj>
+      <name>bs1</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 2.100 0.000 1.000 0.000 0.500 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs2</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 2.300 0.000 1.000 0.000 0.100 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs3</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 2.000 0.000 1.000 0.000 -0.100 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs4</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 -1.900 0.000 1.000 0.000 0.500 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs5</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 -2.300 0.000 1.000 0.000 0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs6</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 -2.300 0.000 1.000 0.000 -0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>bs7</name>
+      <geom>stick_blue.obj</geom>
+      <pose>1.000 0.000 0.000 -2.200 0.000 1.000 0.000 0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs1</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 2.200 0.000 1.000 0.000 -0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs2</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 1.900 0.000 1.000 0.000 -0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs3</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 2.000 0.000 1.000 0.000 0.100 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs4</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 2.100 0.000 1.000 0.000 -0.200 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs5</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 -2.100 0.000 1.000 0.000 0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs6</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 -1.900 0.000 1.000 0.000 0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>gs7</name>
+      <geom>stick_green.obj</geom>
+      <pose>1.000 0.000 0.000 -2.100 0.000 1.000 0.000 -0.200 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs1</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.000 0.000 1.000 0.000 0.600 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs2</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.300 0.000 1.000 0.000 -0.500 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs3</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.000 0.000 1.000 0.000 0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs4</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.200 0.000 1.000 0.000 0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs5</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.000 0.000 1.000 0.000 -0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs6</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 1.900 0.000 1.000 0.000 -0.300 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs7</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 2.400 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs8</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.000 0.000 1.000 0.000 0.600 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs9</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.000 0.000 1.000 0.000 0.100 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs10</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 1.9 0.000 1.000 0.000 0.200 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs11</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.00 0.000 1.000 0.000 0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs12</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.100 0.000 1.000 0.000 -0.400 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs13</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.000 0.000 1.000 0.000 -0.100 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>rs14</name>
+      <geom>stick_red.obj</geom>
+      <pose>1.000 0.000 0.000 -2.300 0.000 1.000 0.000 0.500 0.000 0.000 1.000 0.767</pose>
+      <moveable>true</moveable>
+      <grasps>
+        <gc type="side">
+          <template>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.120</template>
+          <axis>0.0 0.0 1.0</axis>
+        </gc>
+      </grasps>
+      <sop>
+        <template>1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0</template> <!-- all z-rotations of the -->
+        <axis>0.0 0.0 1.0</axis>                                 <!-- "natural" position     -->
+        <distance>0.0</distance>
+      </sop>         
+    </obj>
+
+    <obj>
+      <name>table1</name>
+      <geom>table.obj</geom>
+      <pose>-0.000 -1.000 0.000 2.200 1.000 -0.000 0.000 0.000 0.000 0.000 1.000 0.000</pose>
+      <moveable>false</moveable>
+      <sssp> <!-- sssp = horizontal rectangular region -->
+        <xmin>-0.75</xmin><xmax>0.75</xmax>
+        <ymin>-0.35</ymin><ymax>0.35</ymax>
+        <zmin>0.767</zmin><zmax>0.767</zmax>
+      </sssp>
+      <attachments>
+        <name>bs1</name>
+        <name>bs2</name>
+        <name>bs3</name>
+        <name>gs1</name>
+        <name>gs2</name>
+        <name>gs3</name>
+        <name>gs4</name>
+        <name>rs1</name>
+        <name>rs2</name>
+        <name>rs3</name>
+        <name>rs4</name>
+        <name>rs5</name>
+        <name>rs6</name>
+        <name>rs7</name>
+      </attachments>
+    </obj>
+
+    <obj>
+      <name>table2</name>
+      <geom>table.obj</geom>
+      <pose>0.000 -1.000 0.000 -2.200 1.000 -0.000 0.000 0.000 0.000 0.000 1.000 0.000</pose>
+      <moveable>false</moveable>
+      <sssp> <!-- sssp = horizontal rectangular region -->
+        <xmin>-0.75</xmin><xmax>0.75</xmax>
+        <ymin>-0.35</ymin><ymax>0.35</ymax>
+        <zmin>0.767</zmin><zmax>0.767</zmax>
+      </sssp>
+      <attachments>
+        <name>bs4</name>
+        <name>bs5</name>
+        <name>bs6</name>
+        <name>bs7</name>
+        <name>gs5</name>
+        <name>gs6</name>
+        <name>gs7</name>
+        <name>rs8</name>
+        <name>rs9</name>
+        <name>rs10</name>
+        <name>rs11</name>
+        <name>rs12</name>
+        <name>rs13</name>
+        <name>rs14</name>
+      </attachments>
+    </obj>
+
+    <obj>
+      <name>table3</name>
+      <geom>table.obj</geom>
+      <pose>1.000 0.000 0.000 0.000 0.000 1.000 0.000 2.200 0.000 0.000 1.000 0.000</pose>
+      <moveable>false</moveable>
+      <sssp> <!-- sssp = horizontal rectangular region -->
+        <xmin>-0.75</xmin><xmax>0.75</xmax>
+        <ymin>-0.35</ymin><ymax>0.35</ymax>
+        <zmin>0.767</zmin><zmax>0.767</zmax>
+      </sssp>
+    </obj>
+
+    <obj>
+      <name>table4</name>
+      <geom>table.obj</geom>
+      <pose>1.000 0.000 0.000 0.000 0.000 1.000 0.000 -2.200 0.000 0.000 1.000 0.000</pose>
+      <moveable>false</moveable>
+      <sssp> <!-- sssp = horizontal rectangular region -->
+        <xmin>-0.75</xmin><xmax>0.75</xmax>
+        <ymin>-0.35</ymin><ymax>0.35</ymax>
+        <zmin>0.767</zmin><zmax>0.767</zmax>
+      </sssp>
+    </obj>
+
+    <obj>
+      <name>arena</name>
+      <geom>arena.obj</geom>
+      <pose>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.200</pose>
+      <moveable>false</moveable>
+    </obj>
+  </objects>
+
+
+  <robots>
+
+    <robot>
+      <name>pr2</name>
+      <urdf>models/pr2.urdf</urdf> <!-- or some other format you may use -->
+      <basepose>1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000</basepose>
+      <movebase>true</movebase> <!-- the base should not move -->
+      <torso>0.1</torso>
+      <controllable_joints>
+        <!-- Left arm -->
+        <joint name="l_shoulder_pan_joint">0.5</joint>
+        <joint name="l_shoulder_lift_joint">0.0</joint>
+        <joint name="l_upper_arm_roll_joint">0.0</joint>
+        <joint name="l_forearm_roll_joint">-0.16</joint>
+        <joint name="l_elbow_flex_joint">0.0</joint>
+        <joint name="l_wrist_flex_joint">-0.11</joint>
+        <joint name="l_wrist_roll_joint">0.0</joint>
+        <!-- Right arm -->
+        <joint name="r_shoulder_pan_joint">0.5</joint>
+        <joint name="r_shoulder_lift_joint">0.0</joint>
+        <joint name="r_upper_arm_roll_joint">0.0</joint>
+        <joint name="r_forearm_roll_joint">-0.16</joint>
+        <joint name="r_elbow_flex_joint">0.0</joint>
+        <joint name="r_wrist_flex_joint">-0.11</joint>
+        <joint name="r_wrist_roll_joint">0.0</joint>
+      </controllable_joints>
+      <!-- <left_arm>0.5 0.0 0.0 &#45;0.16 0.0 &#45;0.11 0.0</left_arm> -->
+      <!-- <right_arm>&#45;0.5 0.0 0.0 &#45;0.16 0.0 &#45;0.11 0.0</right_arm> -->
+    </robot>
+
+  </robots>
+
+
+  <workspace_bounds>
+    <x>
+      <low>-2.75</low>
+      <high>2.75</high>
+    </x>
+    <y>
+      <low>-2.75</low>
+      <high>2.75</high>
+    </y>
+    <z>
+      <low>0.0</low>
+      <high>5.54</high>
+    </z>
+  </workspace_bounds>
+</problem>

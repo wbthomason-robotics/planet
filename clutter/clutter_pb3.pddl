@@ -1,0 +1,9 @@
+(define (problem pb7)
+ (:domain clutter)
+ (:objects
+  table1 table2 table3 table4 -surface
+  lgrippertoolframe rgrippertoolframe -manipulator
+  bs1 bs2 gs1 -objs )
+ (:init
+  (on-surface bs1 table1) (on-surface bs2 table1) (on-surface gs1 table1) (arm-empty lgrippertoolframe) (arm-empty rgrippertoolframe))
+ (:goal (and (on-surface bs1 table3) (on-surface bs2 table3) (on-surface gs1 table4) (arm-empty rgrippertoolframe) (arm-empty lgrippertoolframe))))
