@@ -2,6 +2,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <cmath>
+#include <iostream>
 #include <limits>
 
 namespace addn {
@@ -39,6 +40,11 @@ struct DN {
 
   operator double() const { return v; }
 };
+
+inline std::ostream& operator<<(std::ostream& out, const DN& n) {
+  out << "(" << n.v << ", " << n.a << ")";
+  return out;
+}
 
 inline DN operator-(const DN& x) { return DN{-x.v, -x.a}; }
 inline DN operator+(const DN& x, const DN& y) { return DN{x.v + y.v, x.a + y.a}; }

@@ -2,14 +2,14 @@
 #ifndef SPECIFICATION_HH
 #define SPECIFICATION_HH
 
-#include "common.hh"
-
 #include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
 #include <utility>
+
+#include "common.hh"
 
 #define SEXPRESSO_OPT_OUT_PIKESTYLE
 
@@ -18,11 +18,11 @@
 #endif
 
 #include <boost/dynamic_bitset.hpp>
-#include "tsl/hopscotch_map.h"
-#include "tsl/hopscotch_set.h"
 
 #include "formula.hh"
 #include "scenegraph.hh"
+#include "tsl/hopscotch_map.h"
+#include "tsl/hopscotch_set.h"
 
 namespace input::specification {
 using BitVecSizeT = boost::dynamic_bitset<>::size_type;
@@ -123,7 +123,7 @@ using Goal = Vec<Configuration>;
 // predicates are tested from the scene graph.
 using Initial = Set<Str>;
 
-std::tuple<std::optional<Domain>, std::optional<Initial>, std::optional<Goal>>
+std::optional<std::tuple<Domain, Initial, Goal>>
 load(sexpresso::Sexp* domain_sexp, sexpresso::Sexp* problem_sexp, const Str& predicate_filename);
 }  // namespace input::specification
 #endif

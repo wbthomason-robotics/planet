@@ -2,11 +2,11 @@
 #ifndef SAMPLER_HH
 #define SAMPLER_HH
 
-#include "common.hh"
-
 #include <mutex>
 #include <random>
 #include <utility>
+
+#include "common.hh"
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -25,6 +25,8 @@
 #include "specification.hh"
 #include "scene.hh"
 #include "planner_utils.hh"
+
+#include "debug.hh"
 
 namespace planner::sampler {
 namespace ob    = ompl::base;
@@ -52,7 +54,8 @@ class TampSampler : public ob::StateSampler {
  public:
   TampSampler(const ob::StateSpace* si,
               const spec::Domain* const domain,
-              const structures::robot::Robot* const robot);
+              const structures::robot::Robot* const robot
+              IF_ACTION_LOG((, std::shared_ptr<debug::GraphLog> graph_log)));
   void sampleUniform(ob::State* state) override;
   void sampleUniformNear(ob::State* state, const ob::State* near, double distance) override;
   void sampleGaussian(ob::State* state, const ob::State* mean, double stdDev) override;
@@ -61,7 +64,7 @@ class TampSampler : public ob::StateSampler {
   // This is public because the universe histogram logic needs access
   static util::UniverseMap* universe_map;
   static std::mutex universe_mutex;
-  static unsigned int NUM_GD_TRIES;
+  static unsigned int NUM_SOLVER_TRIES;
   static double COIN_BIAS;
 
  protected:
@@ -77,8 +80,7 @@ class TampSampler : public ob::StateSampler {
 
  private:
   static unsigned int sampler_count;
-  inline void
-  apply_action(const Action& action, UniverseSig& universe, ConfigSig& result_config) const;
+  void apply_action(const Action& action, UniverseSig& universe, ConfigSig& result_config) const;
   void pose_objects(structures::scenegraph::Graph* sg,
                     const ob::CompoundState* robot_state,
                     const ob::CompoundState* object_poses,
@@ -110,10 +112,12 @@ class TampSampler : public ob::StateSampler {
 
   std::unique_ptr<symbolic::predicate::LuaEnv<bool>> correctness_env;
   std::unique_ptr<symbolic::predicate::LuaEnv<double>> gradient_env;
+  IF_ACTION_LOG(std::shared_ptr<debug::GraphLog> graph_log;)
 };
 
 ob::StateSamplerPtr allocTampSampler(const ob::StateSpace* space,
                                      const spec::Domain* const domain,
-                                     const structures::robot::Robot* const robot);
+                                     const structures::robot::Robot* const robot IF_ACTION_LOG(
+                                     (, std::shared_ptr<debug::GraphLog> graph_log)));
 }  // namespace planner::sampler
 #endif

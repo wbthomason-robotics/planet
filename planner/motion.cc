@@ -13,7 +13,7 @@
 
 namespace planner::motion {
 namespace {
-  auto log = spdlog::stdout_color_mt("motion");
+  auto log = spdlog::stdout_color_st("motion");
 }  // namespace
 
 unsigned int invalid_end                                 = 0;

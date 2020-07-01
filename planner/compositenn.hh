@@ -120,11 +120,11 @@ struct CompositeNearestNeighbors : public ompl::NearestNeighbors<MotionType> {
     state->as<ob::CompoundState>()->as<ob::CompoundState>(uni_map->eqclass_space_idx);
     const auto* cf_state =
     state->as<ob::CompoundState>()->as<ob::CompoundState>(uni_map->discrete_space_idx);
-    for (int i = 0; i < uni_sig.size(); ++i) {
+    for (size_t i = 0; i < uni_sig.size(); ++i) {
       uni_sig.set(i, uni_state->as<cspace::DiscreteSpace::StateType>(i)->value == 1);
     }
 
-    for (int i = 0; i < cf_sig.size(); ++i) {
+    for (size_t i = 0; i < cf_sig.size(); ++i) {
       cf_sig.set(i, cf_state->as<cspace::DiscreteSpace::StateType>(i)->value == 1);
     }
 

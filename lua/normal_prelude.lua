@@ -1,3 +1,6 @@
+package.path = package.path .. ';lua/libs/?.lua;lua/libs/?/init.lua;lua/libs/?/__init.lua;lua/libs/?/?.lua'
+-- inspect = require('inspect')
+
 function True()
   -- Thunk to let us pick the right value based on gradient or boolean
   return true

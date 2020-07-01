@@ -2,14 +2,6 @@
 #ifndef CSPACE_HH
 #define CSPACE_HH
 
-#include "common.hh"
-
-#include <array>
-#include <memory>
-#include <optional>
-#include <ostream>
-#include <utility>
-
 #include <ompl/base/StateSpace.h>
 #include <ompl/base/spaces/DiscreteStateSpace.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
@@ -17,6 +9,13 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 
+#include <array>
+#include <memory>
+#include <optional>
+#include <ostream>
+#include <utility>
+
+#include "common.hh"
 #include "object.hh"
 #include "planner_utils.hh"
 #include "robot.hh"
@@ -76,28 +75,27 @@ extern std::unique_ptr<ob::RealVectorBounds> workspace_bounds;
 extern Vec<int> cont_joint_idxs;
 extern Vec<std::pair<double, double>> joint_bounds;
 
-std::shared_ptr<ob::CompoundStateSpace>
-make_robot_cspace(const structures::robot::Robot* const robot);
+std::shared_ptr<ob::CompoundStateSpace> make_robot_cspace(const structures::robot::Robot& robot);
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_object_cspace(const structures::object::ObjectSet* const objects);
+make_object_cspace(const structures::object::ObjectSet& objects);
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_eqclass_cspace(const input::specification::Domain* const domain);
+make_eqclass_cspace(const input::specification::Domain& domain);
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_discrete_cspace(const input::specification::Domain* const domain);
+make_discrete_cspace(const input::specification::Domain& domain);
 
 std::tuple<std::shared_ptr<CompositeSpace>,
            std::shared_ptr<ob::CompoundStateSpace>,
            std::shared_ptr<ob::CompoundStateSpace>,
            std::shared_ptr<ob::CompoundStateSpace>,
            std::shared_ptr<ob::CompoundStateSpace>>
-make_cspace(const structures::robot::Robot* const robot,
+make_cspace(const structures::robot::Robot& robot,
             structures::scenegraph::Graph* const sg,
-            const input::specification::Domain* const domain,
-            const structures::object::ObjectSet* const objects,
-            const structures::object::ObjectSet* const obstacles,
-            const std::optional<std::array<structures::object::Bounds, 3>>& workspace_bounds_);
+            const input::specification::Domain& domain,
+            const structures::object::ObjectSet& objects,
+            const structures::object::ObjectSet& obstacles,
+            const std::optional<std::array<structures::object::Bounds, 3>>& known_bounds);
 }  // namespace planner::cspace
 #endif

@@ -2,18 +2,16 @@
 #ifndef UNIVERSE_MAP_HH
 #define UNIVERSE_MAP_HH
 
-#include "common.hh"
-
-#include <memory>
-
-#include <boost/dynamic_bitset.hpp>
-
 #include <ompl/base/State.h>
 #include <ompl/base/StateSpace.h>
-
 #include <tsl/robin_map.h>
 #include <tsl/robin_set.h>
 
+#include <boost/dynamic_bitset.hpp>
+#include <memory>
+
+#include "common.hh"
+#include "debug.hh"
 #include "hash_helpers.hh"
 #include "hashable_statespace.hh"
 #include "predicate.hh"
@@ -66,7 +64,6 @@ struct Universe {
   , configs(std::move(other.configs))
   , sg(std::move(other.sg))
   , actually_reached(other.actually_reached) {}
-  // std::mutex uni_mutex;
   UniverseSig sig;
   tsl::robin_map<ConfigSig, ConfigPtr> configs;
   SceneGraph sg;
@@ -79,14 +76,16 @@ struct UniverseMap {
   UniverseMap(const spec::Initial& init_atoms,
               HashableStateSpace::StateType* init_state,
               SceneGraph init_sg,
-              spec::Goal* goal,
-              spec::Domain* domain,
+              const spec::Goal& goal,
+              const spec::Domain& domain,
               ob::CompoundStateSpace* objects_space,
               ob::StateSpace* space_,
               unsigned int eqclass_space_idx,
               unsigned int discrete_space_idx,
               unsigned int objects_space_idx,
-              bool robot_base_movable);
+              bool robot_base_movable,
+              IF_ACTION_LOG((std::shared_ptr<debug::GraphLog> graph_log,))
+              bool greedy_sample);
 
   std::pair<Universe*, Config*>
   add_transition(const std::pair<const UniverseSig&, const ConfigSig&>& from,
@@ -96,17 +95,18 @@ struct UniverseMap {
   bool check_valid_transition(const HashableStateSpace::StateType* const s1,
                               const HashableStateSpace::StateType* const s2);
   bool check_precondition(const HashableStateSpace::StateType* const state,
-                          symbolic::heuristic::PrioritizedAction* action) const;
+                          symbolic::heuristic::PrioritizedAction* action,
+                          structures::scenegraph::Graph* const sg) const;
   void added_state(HashableStateSpace::StateType* state);
-  ActionDistribution::ValueData* const sample();
+  ActionDistribution::ValueData* sample();
   std::pair<Universe*, Config*>
   get_data(const std::pair<const UniverseSig&, const ConfigSig&>& sig);
 
-  void clear(const spec::Initial& init_atoms,
+  void reset(const spec::Initial& init_atoms,
              HashableStateSpace::StateType* init_state,
              SceneGraph init_sg,
-             spec::Domain* domain,
-             spec::Goal* goal,
+             const spec::Domain& domain,
+             const spec::Goal& goal,
              ob::CompoundStateSpace* objects_space,
              unsigned int objects_space_idx);
   void add_actions(Universe* uni, Config* cf);
@@ -120,8 +120,10 @@ struct UniverseMap {
   const bool base_movable;
   const ob::StateSpace* const space_;
   ompl::RNG rng;
-  std::unique_ptr<symbolic::predicate::LuaEnv<double>> predicate_env;
+  std::unique_ptr<symbolic::predicate::LuaEnv<bool>> predicate_env;
   std::unique_ptr<symbolic::heuristic::FFLikeHeuristic> heuristic;
+  IF_ACTION_LOG(std::shared_ptr<debug::GraphLog> graph_log;)
+  const bool greedy_sample;
 };
 }  // namespace planner::util
 #endif /* end of include guard */

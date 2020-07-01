@@ -4,16 +4,18 @@
 
 // Common typedefs for a the other modules, to allow easy container/type swapping
 
+#include <bullet/btBulletCollisionCommon.h>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-
-#include <bullet/btBulletCollisionCommon.h>
+#define DBG_MACRO_NO_WARNING
+#include <dbg.h>
 
 template <typename T> using Vec             = std::vector<T>;
 template <typename K, typename V> using Map = std::unordered_map<K, V>;
@@ -29,4 +31,10 @@ using TransformPair                        = TransformPairT<double>;
 
 using CollisionShape     = btCollisionShape;
 using CollisionTransform = btTransform;
+
+#ifdef LOG_ACTIONS
+#define IF_ACTION_LOG(line) line
+#else
+#define IF_ACTION_LOG(line)
+#endif
 #endif

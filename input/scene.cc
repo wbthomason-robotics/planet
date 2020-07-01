@@ -1,5 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "scene.hh"
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include <array>
 #include <limits>
@@ -10,8 +11,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include "scene.hh"
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -37,12 +37,12 @@ namespace input::scene {
 // TODO(Wil): Should pose/surface/grasp info be bundled into Objects or contained separately for
 // faster searches?
 namespace {
-  auto log = spdlog::stdout_color_mt("scene");
+  auto log = spdlog::stdout_color_st("scene");
   // NOTE: Taken from ImportURDFDemo in Bullet repo
   constexpr float DEFAULT_COLLISION_MARGIN = 0.001;
 
-  template <int dim> inline auto parse_template(const Vec<Str>& elems);
-  template <> inline auto parse_template<3>(const Vec<Str>& elems) {
+  template <int dim> auto parse_template(const Vec<Str>& elems);
+  template <> auto parse_template<3>(const Vec<Str>& elems) {
     Eigen::Matrix<double, 3, 3> transform_mat(Eigen::Matrix<double, 3, 3>::Identity());
     for (size_t i = 0; i < 3; ++i) {
       for (size_t j = 0; j < 3; ++j) {
@@ -53,7 +53,7 @@ namespace {
     return transform_mat;
   }
 
-  template <> inline auto parse_template<4>(const Vec<Str>& elems) {
+  template <> auto parse_template<4>(const Vec<Str>& elems) {
     Eigen::Matrix<double, 4, 4> transform_mat(Eigen::Matrix<double, 4, 4>::Identity());
     for (size_t i = 0; i < 3; ++i) {
       for (size_t j = 0; j < 4; ++j) {
@@ -64,7 +64,7 @@ namespace {
     return transform_mat;
   }
 
-  inline auto transform_of_pose(const urdf::Pose& pose) {
+  auto transform_of_pose(const urdf::Pose& pose) {
     Transform3r result;
     result.translation() = Vector3r(pose.position.x, pose.position.y, pose.position.z);
     result.linear() =
@@ -73,17 +73,17 @@ namespace {
     return result;
   }
 
-  inline auto parse_point(const tinyxml2::XMLNode* point_node) {
+  auto parse_point(const tinyxml2::XMLNode* point_node) {
     auto x = point_node->FirstChildElement("x")->Value();
     auto y = point_node->FirstChildElement("y")->Value();
     auto z = point_node->FirstChildElement("z")->Value();
     return Vector3r(std::stod(x), std::stod(y), std::stod(z));
   }
 
-  inline std::unique_ptr<btCollisionShape> load_bullet_mesh(const Vec<tinyobj::shape_t>& shapes,
-                                                            const tinyobj::attrib_t& mesh_attrib,
-                                                            const urdf::Vector3& scale,
-                                                            const bool maybe_concave) {
+  std::unique_ptr<btCollisionShape> load_bullet_mesh(const Vec<tinyobj::shape_t>& shapes,
+                                                     const tinyobj::attrib_t& mesh_attrib,
+                                                     const urdf::Vector3& scale,
+                                                     const bool maybe_concave) {
     btVector3 geom_scale(scale.x, scale.y, scale.z);
     std::unique_ptr<btCollisionShape> model;
     if (maybe_concave) {
@@ -145,8 +145,9 @@ namespace {
     Vec<tinyobj::shape_t> shapes;
     Vec<tinyobj::material_t> materials;
     Str err;
+    Str warn;
     if (!tinyobj::LoadObj(
-        &mesh_attrib, &shapes, &materials, &err, obj_mesh_path.c_str(), obj_dir.c_str(), true)) {
+        &mesh_attrib, &shapes, &materials, &warn, &err, obj_mesh_path.c_str(), obj_dir.c_str())) {
       log->error("Error loading mesh from {}: '{}'", obj_mesh_path, err);
       return nullptr;
     }

@@ -1,5 +1,3 @@
-#include "initial.hh"
-
 #include <ompl/base/spaces/DiscreteStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 
@@ -7,12 +5,13 @@
 #include <Eigen/Geometry>
 
 #include "fplus/fplus.hpp"
+#include "initial.hh"
 
 namespace planner::initial {
 void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
                         const spec::Initial& discrete_init,
-                        const structures::object::ObjectSet* const object_init,
-                        const structures::robot::Robot* const robot_init,
+                        const structures::object::ObjectSet& object_init,
+                        const structures::robot::Robot& robot_init,
                         const tsl::hopscotch_map<Str, spec::DimId>& eqclass_dimensions,
                         const tsl::hopscotch_map<Str, spec::DimId>& discrete_dimensions,
                         const ob::SpaceInformationPtr& si) {
@@ -43,8 +42,8 @@ void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
   }
 
   // Fill the robot state
-  if (robot_init->base_movable) {
-    const auto& base_pose        = *robot_init->base_pose;
+  if (robot_init.base_movable) {
+    const auto& base_pose        = *robot_init.base_pose;
     const auto& base_translation = base_pose.translation();
     const auto& base_rotation    = Eigen::Quaterniond(base_pose.linear());
     ob::ScopedState<cspace::RobotBaseSpace> base_state(
@@ -64,7 +63,7 @@ void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
 
   auto joint_space = robot_space->as<ob::CompoundStateSpace>()->getSubspace(cspace::JOINT_SPACE);
   ob::ScopedState<cspace::RobotJointSpace> joints_state(joint_space);
-  for (const auto& joint : robot_init->controllable_joints) {
+  for (const auto& joint : robot_init.controllable_joints) {
     const auto& [joint_name, _l, _u, initial_value] = joint.second;
     if (robot_space->as<ob::CompoundStateSpace>()->hasSubspace(joint_name)) {
       // Joint is continuous and has SO(2) state
@@ -73,9 +72,9 @@ void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
       ob::ScopedState<ob::SO2StateSpace> cont_joint_state(cont_joint_space);
       cont_joint_state->value = initial_value;
       cont_joint_state >> robot_state;
-    } else if (robot_init->tree_nodes.at(joint_name)->idx) {
+    } else if (robot_init.tree_nodes.at(joint_name)->idx) {
       // Joint is bounded and has R state
-      const auto idx             = robot_init->tree_nodes.at(joint_name)->idx;
+      const auto idx             = robot_init.tree_nodes.at(joint_name)->idx;
       joints_state->values[*idx] = initial_value;
     }
   }
@@ -83,8 +82,8 @@ void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
   joints_state >> robot_state;
 
   // Fill the object state
-  for (const auto& [name, object] : *object_init) {
-    const auto& pose = object->initial_pose;
+  for (const auto& [name, object] : object_init) {
+    const auto& pose        = object->initial_pose;
     const auto& translation = pose.getOrigin();
     const auto& rotation    = pose.getRotation();
 

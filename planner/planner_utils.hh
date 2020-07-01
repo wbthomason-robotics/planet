@@ -17,7 +17,6 @@
 #include "hash_helpers.hh"
 #include "hashable_statespace.hh"
 #include "heuristic.hh"
-#include "predicate.hh"
 #include "scenegraph.hh"
 #include "signatures.hh"
 #include "specification.hh"

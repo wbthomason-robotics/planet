@@ -1,10 +1,9 @@
-#include "output.hh"
-
-#include <fstream>
-
 #include <fmt/format.h>
 
+#include <fstream>
 #include <nlohmann/json.hpp>
+
+#include "output.hh"
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -25,12 +24,12 @@ namespace cspace = planner::cspace;
 using json = nlohmann::json;
 
 namespace {
-  auto log = spdlog::stdout_color_mt("plan-output");
+  auto log = spdlog::stdout_color_st("plan-output");
 }
 
 Vec<PlanStep> construct_plan(ompl::geometric::PathGeometric* const solution_path,
-                             const planner::util::ActionLog* const action_log,
-                             const structures::robot::Robot* const robot,
+                             const planner::util::ActionLog& action_log,
+                             const structures::robot::Robot& robot,
                              const ob::SpaceInformationPtr& si) {
   log->info("Plan has {} states", solution_path->getStateCount());
   Vec<PlanStep> result;
@@ -59,7 +58,7 @@ Vec<PlanStep> construct_plan(ompl::geometric::PathGeometric* const solution_path
 
     // Get base pose
     Pose base_pose;
-    if (robot->base_movable) {
+    if (robot.base_movable) {
       const auto base_space_idx = robot_space->getSubspaceIndex(cspace::BASE_SPACE);
       const auto& base_state = robot_state->as<cspace::RobotBaseSpace::StateType>(base_space_idx);
       base_pose.translation  = {base_state->getX(), base_state->getY(), base_state->getZ()};
@@ -68,15 +67,15 @@ Vec<PlanStep> construct_plan(ompl::geometric::PathGeometric* const solution_path
       Eigen::AngleAxisd(base_rotation_state.value, Eigen::Vector3d::UnitZ()));
       base_pose.rotation = {rotation.x(), rotation.y(), rotation.z(), rotation.w()};
     } else {
-      const auto& translation = robot->base_pose->translation();
-      const Eigen::Quaterniond rotation(robot->base_pose->linear());
+      const auto& translation = robot.base_pose->translation();
+      const Eigen::Quaterniond rotation(robot.base_pose->linear());
       base_pose.translation = {translation[0], translation[1], translation[2]};
       base_pose.rotation    = {rotation.x(), rotation.y(), rotation.z(), rotation.w()};
     }
 
     // Get symbolic action, if any
     std::optional<Vec<Str>> symbolic_action;
-    for (const auto& [log_state, log_action] : *action_log) {
+    for (const auto& [log_state, log_action] : action_log) {
       if (full_space->equalStates(log_state, state_ptr)) {
         // Extract the action instantiation
         symbolic_action.emplace({log_action->action->name});

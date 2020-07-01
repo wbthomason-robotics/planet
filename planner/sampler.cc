@@ -1,16 +1,13 @@
-#include "sampler.hh"
-
-#include <algorithm>
-#include <stdexcept>
-
 #include <fmt/ostream.h>
-#include <functional>
-
 #include <ompl/base/ScopedState.h>
 
+#include <algorithm>
 #include <fplus/fplus.hpp>
+#include <functional>
+#include <stdexcept>
 
 #include "heuristic.hh"
+#include "sampler.hh"
 #include "scenegraph.hh"
 #include "solver.hh"
 #include "specification.hh"
@@ -25,13 +22,14 @@ std::mutex counter_mutex;
 util::UniverseMap* TampSampler::universe_map = nullptr;
 std::mutex TampSampler::universe_mutex;
 unsigned int TampSampler::sampler_count = 0;
-unsigned int TampSampler::NUM_GD_TRIES  = 0;
+unsigned int TampSampler::NUM_SOLVER_TRIES = 0;
 double TampSampler::COIN_BIAS           = 0.0;
 
 ob::StateSamplerPtr allocTampSampler(const ob::StateSpace* space,
                                      const spec::Domain* const domain,
-                                     const structures::robot::Robot* const robot) {
-  return ob::StateSamplerPtr(new TampSampler(space, domain, robot));
+                                     const structures::robot::Robot* const robot IF_ACTION_LOG(
+                                     (, std::shared_ptr<debug::GraphLog> graph_log))) {
+  return ob::StateSamplerPtr(new TampSampler(space, domain, robot IF_ACTION_LOG((, graph_log))));
 }
 
 void TampSampler::pose_objects(structures::scenegraph::Graph* const sg,
@@ -82,12 +80,13 @@ void TampSampler::pose_objects(structures::scenegraph::Graph* const sg,
                      &joint_vals,
                      &base_pose);
 
-  sg->update_transforms<double>(cont_vals, joint_vals, base_pose, poser);
+  sg->update_transforms(cont_vals, joint_vals, base_pose, poser);
 }
 
 TampSampler::TampSampler(const ob::StateSpace* si,
                          const spec::Domain* const domain,
-                         const structures::robot::Robot* const robot)
+                         const structures::robot::Robot* const robot
+                         IF_ACTION_LOG((, std::shared_ptr<debug::GraphLog> graph_log)))
 : ob::StateSampler(si)
 , name(fmt::format("sampler-{}-{}", std::this_thread::get_id(), sampler_count++))
 , objects_space_idx(space_->as<ob::CompoundStateSpace>()->getSubspaceIndex(cspace::OBJECT_SPACE))
@@ -111,8 +110,8 @@ TampSampler::TampSampler(const ob::StateSpace* si,
 , discrete_state(discrete_space->allocState()->as<ob::CompoundState>())
 , start_state(space_->allocState()->as<cspace::CompositeSpace::StateType>())
 , domain(domain)
-, robot(robot) {
-  log = spdlog::stdout_color_mt(name);
+, robot(robot) IF_ACTION_LOG((, graph_log(graph_log))) {
+  log = spdlog::stdout_color_st(name);
   // Make the Lua Environments
   correctness_env =
   std::make_unique<symbolic::predicate::LuaEnv<bool>>(name + "-test",
@@ -127,7 +126,6 @@ TampSampler::TampSampler(const ob::StateSpace* si,
     for (auto& [formula, _] : action->precondition) {
       correctness_env->load_formula(&formula);
       gradient_env->load_formula(&formula);
-      gradient_env->load_gradient(&formula, cspace::num_dims);
     }
   }
 
@@ -223,13 +221,6 @@ void TampSampler::heuristic_sample(ob::State* state) {
   }
 
   bool grad_success = false;
-  // Set the universe for SG use
-  gradient_env->set_universe(uni);
-  correctness_env->set_universe(uni);
-
-  // Make sure binding mappings exist in the Lua environments
-  gradient_env->set_bindings(action->bindings);
-  correctness_env->set_bindings(action->bindings);
 
   auto& precondition   = action->action->precondition;
   auto precon_branches = fplus::numbers(0, static_cast<int>(precondition.size()));
@@ -263,10 +254,10 @@ void TampSampler::heuristic_sample(ob::State* state) {
     // formula
     double last_value;
     const auto solver_success = solver::gradient_solve(
-    space_, *gradient_env, robot, start_state, &formula, cstate, last_value);
+    space_, *gradient_env, robot, start_state, formula, action->bindings, cstate, last_value);
     if (solver_success) {
       if (last_value > 0) {
-        log->warn("Non-zero value from GD: {}", last_value);
+        log->warn("Non-zero value from solver: {}", last_value);
       }
 
       // Update object poses
@@ -275,21 +266,21 @@ void TampSampler::heuristic_sample(ob::State* state) {
                    nullptr,
                    cstate->as<cspace::ObjectSpace::StateType>(objects_space_idx),
                    &pose_map);
-      const auto correctness =
-      (*correctness_env)(formula.normal_fn_name, space_, cstate, robot->base_movable);
-      return correctness;
+      return correctness_env->call(
+      formula, action->bindings, uni->sg.get(), cstate, space_, robot->base_movable);
     }
 
-    log->error("Gradient descent failed!");
+    log->debug("Solver failed!");
     return solver_success;
   };
 
-  for (; iters < NUM_GD_TRIES; ++iters) {
-    // log->info("Working on {}({}): {}", action->action->name, action->bindings, action->priority);
+  for (; iters < NUM_SOLVER_TRIES; ++iters) {
+    // log->info("Working on {}({}): {}", action->action->name, action->bindings,
+    // action->priority);
     if (std::none_of(precon_branches.cbegin(), precon_branches.cend(), try_gradient)) {
-      log->warn("Solving for precondition for {}({}) failed; trying again.",
-                action->action->name,
-                action->bindings);
+      log->debug("Solving for precondition for {}({}) failed; trying again.",
+                 action->action->name,
+                 action->bindings);
     } else {
       grad_success = true;
       break;
@@ -298,8 +289,9 @@ void TampSampler::heuristic_sample(ob::State* state) {
 
   if (!grad_success) {
     // We tried all the actions and none succeeded
-    log->error("All the branches failed, every iteration. Had to do a uniform sample...");
+    log->warn("All the branches failed, every iteration. Had to do a uniform sample...");
     sample->update(action->update_failure());
+    IF_ACTION_LOG(graph_log->update_failure(sample);)
     ordinary_sample_with_uni(state, uni, cf, true, false);
     ++sample_counter.uniformNormal;
     return;
@@ -317,6 +309,7 @@ void TampSampler::heuristic_sample(ob::State* state) {
   ->as<ob::CompoundState>();
   if (!objects_space->satisfiesBounds(new_pose_state)) {
     sample->update(action->update_failure());
+    IF_ACTION_LOG(graph_log->update_failure(sample);)
     ordinary_sample_with_uni(state, uni, cf, true, false);
     ++sample_counter.uniformNormal;
     return;
@@ -368,9 +361,9 @@ void TampSampler::heuristic_sample(ob::State* state) {
   ++sample_counter.heuristic;
 }
 
-inline void TampSampler::apply_action(const Action& action,
-                                      UniverseSig& universe,
-                                      ConfigSig& result_config) const {
+void TampSampler::apply_action(const Action& action,
+                               UniverseSig& universe,
+                               ConfigSig& result_config) const {
   for (const auto& [dim, val] : action->bound_effect) {
     if (dim < domain->num_eqclass_dims) {
       universe.set(dim, val);

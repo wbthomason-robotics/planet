@@ -1,9 +1,8 @@
-#include "heuristic.hh"
-
 #include <iostream>
 #include <list>
 
 #include "fmt/ostream.h"
+#include "heuristic.hh"
 // clang-format off
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -13,7 +12,7 @@
 
 namespace symbolic::heuristic {
 namespace {
-  auto log      = spdlog::stdout_color_mt("heuristic");
+  auto log      = spdlog::stdout_color_st("heuristic");
   namespace fwd = fplus::fwd;
 
   Str bind_dim_name(const Vec<Str>& names, const Map<Str, Str>& bindings) {
@@ -128,9 +127,44 @@ FFLikeHeuristic::makeGraph(const boost::dynamic_bitset<>& state) {
   return std::nullopt;
 }
 
+std::pair<Map<boost::dynamic_bitset<>, FFLikeHeuristic::ActionData>::iterator, size_t>
+FFLikeHeuristic::update_caches(const FFLikeHeuristic::Graph& graph,
+                               const boost::dynamic_bitset<>& action_state) {
+  const auto& viable_actions = graph.layers.front();
+  const auto plan            = relaxed_plan(graph);
+  const auto action_count    = plan.second;
+  const auto& new_actions    = plan.first;
+  Vec<PrioritizedActionPtr> helpful_actions;
+  helpful_actions.reserve(new_actions.size());
+  for (const auto& action : new_actions) {
+    helpful_actions.emplace_back(std::make_shared<PrioritizedAction>(action));
+  }
+
+  Vec<GroundAction*> other_actions;
+  std::copy_if(viable_actions.actions.begin(),
+               viable_actions.actions.end(),
+               std::back_inserter(other_actions),
+               [&new_actions](auto* action) { return new_actions.count(action) == 0; });
+  auto prioritized_other_actions =
+  fplus::transform([](const auto& action) { return std::make_shared<PrioritizedAction>(action); },
+                   other_actions);
+  Vec<PrioritizedActionPtr> all_actions;
+  all_actions.reserve(helpful_actions.size() + prioritized_other_actions.size());
+  all_actions.insert(all_actions.end(), helpful_actions.begin(), helpful_actions.end());
+  all_actions.insert(all_actions.end(),
+                     prioritized_other_actions.begin(),
+                     prioritized_other_actions.end());
+  distance_cache.emplace(action_state, action_count);
+  return std::make_pair(
+  action_cache
+  .emplace(action_state,
+           ActionData{helpful_actions, prioritized_other_actions, all_actions, false})
+  .first,
+  action_count);
+}
+
 // TODO(Wil): Use action counts to suggest probable pairs
 // TODO(Wil): Use branch count to suggest probable successors?
-// TODO(Wil): Suggest helpful actions sorted by edit distance for precondition states?
 // NOTE: This is not completeness-preserving
 Vec<PrioritizedActionPtr> FFLikeHeuristic::suggest(const boost::dynamic_bitset<>& state) {
   auto action_data = action_cache.find(state);
@@ -142,40 +176,14 @@ Vec<PrioritizedActionPtr> FFLikeHeuristic::suggest(const boost::dynamic_bitset<>
       return {};
     }
 
-    const auto& viable_actions               = graph_result->layers.front();
-    const auto& [plan_actions, action_count] = relaxed_plan(*graph_result);
-    Set<GroundAction*> helpful_actions;
-    helpful_actions.insert(plan_actions.begin(), plan_actions.end());
-    Vec<GroundAction*> other_actions;
-    std::copy_if(viable_actions.actions.begin(),
-                 viable_actions.actions.end(),
-                 std::back_inserter(other_actions),
-                 [&helpful_actions](auto* action) { return helpful_actions.count(action) == 0; });
-    auto prioritized_helpful_actions = fplus::transform(
-    [](const auto& action) { return std::make_shared<PrioritizedAction>(action); }, plan_actions);
-    auto prioritized_other_actions = fplus::transform(
-    [](const auto& action) { return std::make_shared<PrioritizedAction>(action); }, other_actions);
-    Vec<PrioritizedActionPtr> all_actions;
-    all_actions.reserve(prioritized_helpful_actions.size() + prioritized_other_actions.size());
-    all_actions.insert(all_actions.end(),
-                       prioritized_helpful_actions.begin(),
-                       prioritized_helpful_actions.end());
-    all_actions.insert(all_actions.end(),
-                       prioritized_other_actions.begin(),
-                       prioritized_other_actions.end());
-    distance_cache.emplace(state, action_count);
-    action_data =
-    action_cache
-    .emplace(
-    state, ActionData{prioritized_helpful_actions, prioritized_other_actions, all_actions, false})
-    .first;
+    action_data = update_caches(*graph_result, state).first;
   }
 
   const auto& actions      = action_data->second.all_actions;
   bool distances_estimated = action_data->second.distances_estimated;
 
   if (actions.empty()) {
-    log->warn("No helpful actions for state: {}", state);
+    log->warn("No actions for state: {}", state);
   }
 
   if (!distances_estimated) {
@@ -188,10 +196,10 @@ Vec<PrioritizedActionPtr> FFLikeHeuristic::suggest(const boost::dynamic_bitset<>
     action_data->second.distances_estimated = true;
   }
 
-  return action_data->second.all_actions;
+  return actions;
 }
 
-std::pair<Vec<GroundAction*>, size_t> FFLikeHeuristic::relaxed_plan(const Graph& graph) {
+std::pair<Set<GroundAction*>, size_t> FFLikeHeuristic::relaxed_plan(const Graph& graph) {
   // const auto& humanize_atom = [&](const auto& e) {
   //   if (e.first < domain->num_eqclass_dims) {
   //     return std::make_pair(domain->eqclass_dimension_names.at(e.first), e.second);
@@ -227,7 +235,7 @@ std::pair<Vec<GroundAction*>, size_t> FFLikeHeuristic::relaxed_plan(const Graph&
     }
   }
 
-  Vec<GroundAction*> helpful_actions;
+  Set<GroundAction*> helpful_actions;
   for (auto it = plan_graph.crbegin(); it != plan_graph.crend(); ++it) {
     // log->critical("Current goals: {}",
     //               fplus::transform_convert<Vec<std::pair<Str, bool>>>(humanize_atom,
@@ -264,7 +272,7 @@ std::pair<Vec<GroundAction*>, size_t> FFLikeHeuristic::relaxed_plan(const Graph&
             if (it + 1 == plan_graph.crend()) {
               // log->critical("Adding {} as helpful",
               //               fmt::format("{}({})", action->action->name, action->bindings));
-              helpful_actions.push_back(action);
+              helpful_actions.insert(action);
             }
 
             // Add the action's precondition atoms as new goals
@@ -290,37 +298,21 @@ double FFLikeHeuristic::estimate_distances(const boost::dynamic_bitset<>& state,
     // Apply action
     boost::dynamic_bitset<> action_state(state);
     apply_action(action_state, action);
-    const auto& graph_result = makeGraph(action_state);
-    if (!graph_result) {
-      log->critical("No graph, so assuming infinite distance and thus zero priority!");
-      distance_cache.emplace(action_state, std::numeric_limits<unsigned int>::max());
-      continue;
+    auto distance_data = distance_cache.find(action_state);
+    size_t action_count;
+    if (distance_data == distance_cache.end()) {
+      const auto& graph_result = makeGraph(action_state);
+      if (!graph_result) {
+        log->critical("No graph, so assuming infinite distance and thus zero priority!");
+        distance_cache.emplace(action_state, std::numeric_limits<unsigned int>::max());
+        continue;
+      }
+
+      action_count = update_caches(*graph_result, action_state).second;
+    } else {
+      action_count = distance_data->second;
     }
-    const auto& viable_actions              = graph_result->layers.front();
-    const auto& [new_actions, action_count] = relaxed_plan(*graph_result);
-    Set<GroundAction*> helpful_actions;
-    helpful_actions.insert(new_actions.begin(), new_actions.end());
-    Vec<GroundAction*> other_actions;
-    std::copy_if(viable_actions.actions.begin(),
-                 viable_actions.actions.end(),
-                 std::back_inserter(other_actions),
-                 [&helpful_actions](auto* action) { return helpful_actions.count(action) == 0; });
-    auto prioritized_new_actions = fplus::transform(
-    [](const auto& action) { return std::make_shared<PrioritizedAction>(action); }, new_actions);
-    auto prioritized_other_actions = fplus::transform(
-    [](const auto& action) { return std::make_shared<PrioritizedAction>(action); }, other_actions);
-    Vec<PrioritizedActionPtr> all_actions;
-    all_actions.reserve(prioritized_new_actions.size() + prioritized_other_actions.size());
-    all_actions.insert(all_actions.end(),
-                       prioritized_new_actions.begin(),
-                       prioritized_new_actions.end());
-    all_actions.insert(all_actions.end(),
-                       prioritized_other_actions.begin(),
-                       prioritized_other_actions.end());
-    distance_cache.emplace(action_state, action_count);
-    action_cache.emplace(
-    action_state,
-    ActionData{prioritized_new_actions, prioritized_other_actions, all_actions, false});
+
     // action_count will be 0 iff action_state is a valid goal state. That means that action leads
     // directly to the goal and should be highly prioritized_action
     // TODO(Wil): Should I use a value > 1 for these actions (where action_count = 0)?

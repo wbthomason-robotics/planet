@@ -1,17 +1,15 @@
 #pragma once
 #ifndef HEURISTIC_HH
 #define HEURISTIC_HH
-#include "common.hh"
+#include <tsl/robin_map.h>
+#include <tsl/robin_set.h>
 
+#include <boost/dynamic_bitset.hpp>
 #include <memory>
 #include <optional>
 #include <utility>
 
-#include <boost/dynamic_bitset.hpp>
-
-#include <tsl/robin_map.h>
-#include <tsl/robin_set.h>
-
+#include "common.hh"
 #include "hash_helpers.hh"
 #include "specification.hh"
 
@@ -101,7 +99,7 @@ struct FFLikeHeuristic : public Heuristic {
                       const Map<Str, Vec<Str>>& typed_objects);
   [[nodiscard]] Vec<size_t> goal_met(const spec::Goal& goal, const State& state) const;
   std::optional<Graph> makeGraph(const boost::dynamic_bitset<>& state);
-  std::pair<Vec<GroundAction*>, size_t> relaxed_plan(const Graph& graph);
+  std::pair<Set<GroundAction*>, size_t> relaxed_plan(const Graph& graph);
   double estimate_distances(const boost::dynamic_bitset<>& state,
                             const Vec<PrioritizedActionPtr>& actions);
 
@@ -118,6 +116,9 @@ struct FFLikeHeuristic : public Heuristic {
   // NOTE: This is a Map to get around annoying issues with iterator invalidation
   Map<boost::dynamic_bitset<>, ActionData> action_cache;
   tsl::robin_map<boost::dynamic_bitset<>, unsigned int> distance_cache;
+
+  std::pair<Map<boost::dynamic_bitset<>, ActionData>::iterator, size_t>
+  update_caches(const FFLikeHeuristic::Graph& graph, const boost::dynamic_bitset<>& action_state);
 };
 
 bool precondition_satisfiable(GroundAction* action, const State& state);

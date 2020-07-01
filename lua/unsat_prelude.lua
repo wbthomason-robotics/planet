@@ -1,5 +1,6 @@
 package.path = package.path .. ';lua/libs/?.lua;lua/libs/?/init.lua;lua/libs/?/__init.lua;lua/libs/?/?.lua'
-local math = require('sci.math')
+math = require('sci.math')
+-- inspect = require('inspect')
 
 function Eq(a, b)
   return math.abs(a - b)

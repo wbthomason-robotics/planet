@@ -33,7 +33,7 @@ extern unsigned int MAX_SAMPLES;
 struct CompositeGoal : public ob::Goal {
   CompositeGoal(const ob::SpaceInformationPtr& si,
                 const spec::Domain* const domain,
-                spec::Goal* goal,
+                spec::Goal* const goal,
                 const structures::robot::Robot* const robot)
   : ob::Goal(si)
   , space(si_->getStateSpace()->as<ob::CompoundStateSpace>())

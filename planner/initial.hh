@@ -22,8 +22,8 @@ namespace spec = input::specification;
 
 void make_initial_state(ob::ScopedState<cspace::CompositeSpace>& initial_state,
                         const spec::Initial& discrete_init,
-                        const structures::object::ObjectSet* object_init,
-                        const structures::robot::Robot* robot_init,
+                        const structures::object::ObjectSet& object_init,
+                        const structures::robot::Robot& robot_init,
                         const tsl::hopscotch_map<Str, spec::DimId>& eqclass_dimensions,
                         const tsl::hopscotch_map<Str, spec::DimId>& discrete_dimensions,
                         const ob::SpaceInformationPtr& si);

@@ -1,9 +1,9 @@
 #include "collision.hh"
 #ifndef USE_FCL
+#include <fmt/ostream.h>
+
 #include <algorithm>
 #include <fstream>
-
-#include <fmt/ostream.h>
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -110,7 +110,7 @@ void BulletCollisionChecker::output_json() const {
   json_file.close();
 }
 
-inline void write_sample_data(const Transform3r& base_tf,
+void write_sample_data(const Transform3r& base_tf,
                               const Map<Str, double>& joint_data,
                               const Map<Str, Transform3r>& pose_data,
                               const Vec<std::pair<Str, Str>>& colliding_links) {
@@ -180,8 +180,7 @@ bool NeighborLinksFilter::needBroadphaseCollision(btBroadphaseProxy* proxy0,
 
   const auto idx1 = obj1->getUserIndex();
   const auto idx2 = obj2->getUserIndex();
-  collides =
-  collides && ((idx1 < 0) || (idx2 < 0) || !blacklist[idx1][idx2]);
+  collides        = collides && ((idx1 < 0) || (idx2 < 0) || !blacklist[idx1][idx2]);
   // collides = collides && blacklist.find({std::min(*name1, *name2), std::max(*name1, *name2)}) ==
   //                        blacklist.end();
 
@@ -289,7 +288,7 @@ bool BulletCollisionChecker::isValid(const ob::State* state) const {
     }
   };
 
-  cstate->sg->update_transforms<double>(cont_vals, joint_vals, base_tf, pose_helper);
+  cstate->sg->update_transforms(cont_vals, joint_vals, base_tf, pose_helper);
   broadphase_filter->sg = cstate->sg;
 
   // Check collisions

@@ -1,16 +1,14 @@
-#include "cspace.hh"
+#include <bullet/btBulletCollisionCommon.h>
+#include <fmt/ostream.h>
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <algorithm>
 #include <array>
 #include <iostream>
 #include <limits>
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-
-#include <bullet/btBulletCollisionCommon.h>
-
-#include <fmt/ostream.h>
+#include "cspace.hh"
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -23,15 +21,15 @@
 
 namespace planner::cspace {
 namespace {
-  auto log                          = spdlog::stdout_color_mt("cspace");
-  inline constexpr double neg_infty = -std::numeric_limits<double>::infinity();
-  inline constexpr double pos_infty = std::numeric_limits<double>::infinity();
-  inline constexpr void update_bounds(std::array<double, 3>& min_bounds,
-                                      std::array<double, 3>& max_bounds,
-                                      double x,
-                                      const double y,
-                                      const double z,
-                                      const double radius) {
+  auto log                   = spdlog::stdout_color_st("cspace");
+  constexpr double neg_infty = -std::numeric_limits<double>::infinity();
+  constexpr double pos_infty = std::numeric_limits<double>::infinity();
+  constexpr void update_bounds(std::array<double, 3>& min_bounds,
+                               std::array<double, 3>& max_bounds,
+                               double x,
+                               const double y,
+                               const double z,
+                               const double radius) {
     max_bounds[0] = std::max({x + radius, x - radius, max_bounds[0]});
     min_bounds[0] = std::min({x + radius, x - radius, min_bounds[0]});
     max_bounds[1] = std::max({y + radius, y - radius, max_bounds[1]});
@@ -140,7 +138,7 @@ void CompositeSpace::interpolate(const ob::State* from,
                            &joint_vals,
                            &base_tf);
 
-  cstate->sg->update_transforms<double>(cont_vals, joint_vals, base_tf, poser);
+  cstate->sg->update_transforms(cont_vals, joint_vals, base_tf, poser);
 }
 
 double CompositeSpace::distance(const ob::State* state1, const ob::State* state2) const {
@@ -156,7 +154,7 @@ double CompositeSpace::distance(const ob::State* state1, const ob::State* state2
   // discrete_space->equalStates(cstate1->as<DiscreteSpace::StateType>(discrete_space_idx),
   //                             cstate2->as<DiscreteSpace::StateType>(discrete_space_idx));
   // const bool same_discrete = same_universe && same_config;
-  if (same_object_pose && universe_map->check_valid_transition(cstate1, cstate2)) {
+  if (true && universe_map->check_valid_transition(cstate1, cstate2)) {
     return contDistance(state1, state2);
   }
 
@@ -233,10 +231,10 @@ Vec<int> cont_joint_idxs;
 Vec<std::pair<double, double>> joint_bounds;
 
 std::tuple<std::array<double, 3>, std::array<double, 3>, double>
-make_workspace_bounds(const structures::robot::Robot* const robot,
+make_workspace_bounds(const structures::robot::Robot& robot,
                       structures::scenegraph::Graph* const sg,
-                      const structures::object::ObjectSet* const objects,
-                      const structures::object::ObjectSet* const obstacles) {
+                      const structures::object::ObjectSet& objects,
+                      const structures::object::ObjectSet& obstacles) {
   // Compute a bounding box for the workspace by (a) finding the min and max (x, y, z) of the
   // robot and all objects (including bounding boxes) and (b) adding 2 * robot diameter to each
   // to allow room to move around the workspace
@@ -245,7 +243,7 @@ make_workspace_bounds(const structures::robot::Robot* const robot,
 
   // Handle the robot
   double robot_radius              = 0.0;
-  const Vector3r& base_translation = robot->base_pose->translation();
+  const Vector3r& base_translation = robot.base_pose->translation();
   double radius, x, y, z;
   auto robot_walker =
   [&](const auto* const node, const bool robot_ancestor, const auto& tf, const auto& coll_tf) {
@@ -275,7 +273,7 @@ make_workspace_bounds(const structures::robot::Robot* const robot,
     }
   };
 
-  const Transform3r base_tf(*robot->base_pose);
+  const Transform3r base_tf(*robot.base_pose);
   sg->update_transforms<double>(nullptr, nullptr, base_tf, robot_walker);
 
   // Now that we have the "correct" robot radius, check for bounds updates
@@ -288,14 +286,14 @@ make_workspace_bounds(const structures::robot::Robot* const robot,
   log->info("Robot radius: {}", robot_radius);
 
   // Handle the objects
-  for (const auto& object : fplus::get_map_values(*objects)) {
+  for (const auto& object : fplus::get_map_values(objects)) {
     object->get_bounding_sphere(x, y, z, radius);
     log->info("Bounds for {} are ({}, {}, {}) with radius {}", object->name, x, y, z, radius);
     update_bounds(min_bounds, max_bounds, x, y, z, radius);
   }
 
   // Handle the obstacles
-  for (const auto& obstacle : fplus::get_map_values(*obstacles)) {
+  for (const auto& obstacle : fplus::get_map_values(obstacles)) {
     obstacle->get_bounding_sphere(x, y, z, radius);
     log->info("Bounds for {} are ({}, {}, {}) with radius {}", obstacle->name, x, y, z, radius);
     update_bounds(min_bounds, max_bounds, x, y, z, radius);
@@ -304,8 +302,7 @@ make_workspace_bounds(const structures::robot::Robot* const robot,
   return std::make_tuple(std::move(min_bounds), std::move(max_bounds), robot_radius);
 }
 
-std::shared_ptr<ob::CompoundStateSpace>
-make_robot_cspace(const structures::robot::Robot* const robot) {
+std::shared_ptr<ob::CompoundStateSpace> make_robot_cspace(const structures::robot::Robot& robot) {
   /// Make the robot's configuration space based on its joints and the mobility of its base
   auto robot_space = std::make_shared<ob::CompoundStateSpace>();
   robot_space->setName(ROBOT_SPACE);
@@ -314,7 +311,7 @@ make_robot_cspace(const structures::robot::Robot* const robot) {
   auto joint_space = std::make_shared<RobotJointSpace>();
   joint_space->setName(JOINT_SPACE);
   int idx = 0;
-  for (const auto& joint_data : robot->controllable_joints) {
+  for (const auto& joint_data : robot.controllable_joints) {
     const auto& [joint_name, lower, upper, _] = joint_data.second;
     if (lower == upper) {
       log->debug("Joint {} has zero-measure bounds; assuming fixed and not adding", joint_name);
@@ -323,20 +320,20 @@ make_robot_cspace(const structures::robot::Robot* const robot) {
 
     // NOTE: The below comparison is OK because f == f for all floating point f, and we're
     // getting the same representation here both times
-    if (robot->tree_nodes.at(joint_name)->type == structures::scenegraph::Node::Type::CONTINUOUS) {
+    if (robot.tree_nodes.at(joint_name)->type == structures::scenegraph::Node::Type::CONTINUOUS) {
       log->debug("Joint {} is continuous. Adding SO(2) subspace!", joint_name);
       auto cont_joint_subspace = std::make_shared<ob::SO2StateSpace>();
       cont_joint_subspace->setName(joint_name);
       robot_space->addSubspace(cont_joint_subspace, 1.0);
-      const auto joint_idx                  = robot_space->getSubspaceIndex(joint_name);
-      robot->tree_nodes.at(joint_name)->idx = joint_idx;
+      const auto joint_idx                 = robot_space->getSubspaceIndex(joint_name);
+      robot.tree_nodes.at(joint_name)->idx = joint_idx;
       cont_joint_idxs.push_back(joint_idx);
       num_dims += 1;
     } else {
       log->debug("Added dimension for joint {} bounded by ({}, {})", joint_name, lower, upper);
       joint_space->addDimension(joint_name, lower, upper);
       // This tracks the index of this controllable joint in the robot state vector
-      robot->tree_nodes.at(joint_name)->idx = idx;
+      robot.tree_nodes.at(joint_name)->idx = idx;
       ++idx;
       joint_bounds.push_back({lower, upper});
     }
@@ -345,17 +342,19 @@ make_robot_cspace(const structures::robot::Robot* const robot) {
   // TODO(Wil): Should probably add a dimension for the torso if one exists
 
   // Add SE(3) for the robot base if it's movable
-  if (robot->base_movable) {
+  if (robot.base_movable) {
     auto base_space = std::make_shared<RobotBaseSpace>();
     base_space->setName(BASE_SPACE);
     // Note: We restrict the Z coordinate of the base pose to its initial value
     auto base_bounds = *workspace_bounds;
-    base_bounds.setLow(2, robot->base_pose->translation().z());
-    base_bounds.setHigh(2, robot->base_pose->translation().z());
+    base_bounds.setLow(2, robot.base_pose->translation().z());
+    base_bounds.setHigh(2, robot.base_pose->translation().z());
     base_space->setBounds(base_bounds);
     robot_space->addSubspace(base_space, 1.0);
-    log->debug("Added SE(3) for base mobility");
-    // We represent the SE(3) copy with (x, y, z, qx, qy, qz, qw)
+    log->debug("Added (x, y, z, rot) for base mobility");
+    // NOTE: Base pose is stored as (x, y, z, rot) right now; we'd need to update to full SE(3) to
+    // plan with non ground-based robots
+    // We represent the base pose copy with (x, y, z, rotation)
     num_dims += 4;
   }
 
@@ -377,7 +376,7 @@ make_robot_cspace(const structures::robot::Robot* const robot) {
 }
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_object_cspace(const structures::object::ObjectSet* const objects) {
+make_object_cspace(const structures::object::ObjectSet& objects) {
   /// Make a configuration space with a copy of SE(3) for each movable object
   // NOTE: I hack on a pad on the workspace bounds for the object subspaces to account for posing
   ob::RealVectorBounds object_bounds(*workspace_bounds);
@@ -389,8 +388,8 @@ make_object_cspace(const structures::object::ObjectSet* const objects) {
   object_bounds.high[2] += 0.3;
   auto object_space = std::make_shared<ob::CompoundStateSpace>();
   object_space->setName(OBJECT_SPACE);
-  log->debug("Adding {} copies of SE(3) for movable objects", objects->size());
-  for (const auto& [obj_name, _] : *objects) {
+  log->debug("Adding {} copies of SE(3) for movable objects", objects.size());
+  for (const auto& [obj_name, _] : objects) {
     log->debug("Making SE(3) copy for {}", obj_name);
     auto obj = std::make_shared<ObjectSpace>();
     obj->setName(obj_name);
@@ -403,16 +402,16 @@ make_object_cspace(const structures::object::ObjectSet* const objects) {
 
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_eqclass_cspace(const input::specification::Domain* const domain) {
+make_eqclass_cspace(const input::specification::Domain& domain) {
   /// Make discrete dimensions for each discrete dimension that can modify the "valid sample"
   /// space for a universe; i.e. the set of equivalence class identifying dimensions
   auto eqclass_space = std::make_shared<ob::CompoundStateSpace>();
   eqclass_space->setName(EQCLASS_SPACE);
-  if (domain->eqclass_dimension_ids.empty()) {
+  if (domain.eqclass_dimension_ids.empty()) {
     log->critical("No kinematic predicates found! This will probably cause a crash, and you're "
                   "probably using the wrong tool...");
   } else {
-    for (const auto& [dim_name, dim_idx] : fwd::apply(domain->eqclass_dimension_ids,
+    for (const auto& [dim_name, dim_idx] : fwd::apply(domain.eqclass_dimension_ids,
                                                       fwd::map_to_pairs(),
                                                       fwd::sort_by([](const auto&a, const auto&b) {
                                                         return a.second < b.second;
@@ -434,13 +433,13 @@ make_eqclass_cspace(const input::specification::Domain* const domain) {
 }
 
 std::shared_ptr<ob::CompoundStateSpace>
-make_discrete_cspace(const input::specification::Domain* const domain) {
+make_discrete_cspace(const input::specification::Domain& domain) {
   auto discrete_space = std::make_shared<ob::CompoundStateSpace>();
   discrete_space->setName(DISCRETE_SPACE);
-  if (domain->discrete_dimension_ids.empty()) {
+  if (domain.discrete_dimension_ids.empty()) {
     log->error("No discrete predicates found! This is weird, and will probably cause a crash");
   } else {
-    for (const auto& [dim_name, dim_idx] : fwd::apply(domain->discrete_dimension_ids,
+    for (const auto& [dim_name, dim_idx] : fwd::apply(domain.discrete_dimension_ids,
                                                       fwd::map_to_pairs(),
                                                       fwd::sort_by([](const auto&a, const auto&b) {
                                                         return a.second < b.second;
@@ -466,21 +465,21 @@ std::tuple<std::shared_ptr<CompositeSpace>,
            std::shared_ptr<ob::CompoundStateSpace>,
            std::shared_ptr<ob::CompoundStateSpace>,
            std::shared_ptr<ob::CompoundStateSpace>>
-make_cspace(const structures::robot::Robot* const robot,
+make_cspace(const structures::robot::Robot& robot,
             structures::scenegraph::Graph* const sg,
-            const input::specification::Domain* const domain,
-            const structures::object::ObjectSet* const objects,
-            const structures::object::ObjectSet* const obstacles,
-            const std::optional<std::array<structures::object::Bounds, 3>>& workspace_bounds_) {
+            const input::specification::Domain& domain,
+            const structures::object::ObjectSet& objects,
+            const structures::object::ObjectSet& obstacles,
+            const std::optional<std::array<structures::object::Bounds, 3>>& known_bounds) {
   /// Call the various configuration space generating functions to make the overall compound
   /// space
   auto cspace = std::make_shared<CompositeSpace>();
 
   workspace_bounds = std::make_unique<ob::RealVectorBounds>(3);
-  if (workspace_bounds_) {
-    const auto& x_bounds = workspace_bounds_->at(0);
-    const auto& y_bounds = workspace_bounds_->at(1);
-    const auto& z_bounds = workspace_bounds_->at(2);
+  if (known_bounds) {
+    const auto& x_bounds = known_bounds->at(0);
+    const auto& y_bounds = known_bounds->at(1);
+    const auto& z_bounds = known_bounds->at(2);
 
     workspace_bounds->setLow(0, x_bounds.low);
     workspace_bounds->setHigh(0, x_bounds.high);
@@ -505,14 +504,14 @@ make_cspace(const structures::robot::Robot* const robot,
   auto robot_space = make_robot_cspace(robot);
   cspace->addSubspace(robot_space, 1.0);
   cspace->robot_space_idx = cspace->getSubspaceIndex(ROBOT_SPACE);
-  if (robot->base_movable) {
+  if (robot.base_movable) {
     cspace->base_space_idx = robot_space->getSubspaceIndex(BASE_SPACE);
   } else {
     cspace->base_space_idx = -1;
   }
 
   cspace->joint_space_idx = robot_space->getSubspaceIndex(JOINT_SPACE);
-  cspace->base_movable    = robot->base_movable;
+  cspace->base_movable    = robot.base_movable;
 
   auto objects_space = make_object_cspace(objects);
   cspace->addSubspace(objects_space, 1.0);

@@ -32,8 +32,8 @@ struct PlanStep {
 };
 
 Vec<PlanStep> construct_plan(ompl::geometric::PathGeometric* solution_path,
-                             const planner::util::ActionLog* action_log,
-                             const structures::robot::Robot* robot,
+                             const planner::util::ActionLog& action_log,
+                             const structures::robot::Robot& robot,
                              const ob::SpaceInformationPtr& si);
 
 void output_plan(const Vec<PlanStep>& plan, const Str& output_filepath);

@@ -1,17 +1,16 @@
-#include "universe_map.hh"
-
 #include "planner_utils.hh"
+#include "universe_map.hh"
 
 namespace planner::util {
 
 double GOAL_WEIGHT;
 bool UniverseMap::check_precondition(const HashableStateSpace::StateType* const state,
-                                     symbolic::heuristic::PrioritizedAction* action) const {
-  predicate_env->set_bindings(action->bindings);
+                                     symbolic::heuristic::PrioritizedAction* action,
+                                     structures::scenegraph::Graph* const sg) const {
   const auto& precondition_branches = action->action->precondition;
   return std::any_of(
   precondition_branches.begin(), precondition_branches.end(), [&](const auto& branch) {
-    return (*predicate_env)(branch.first.normal_fn_name, space_, state, base_movable);
+    return predicate_env->call(branch.first, action->bindings, sg, state, space_, base_movable);
   });
 }
 
@@ -54,9 +53,8 @@ bool UniverseMap::check_valid_transition(const HashableStateSpace::StateType* co
       return true;
     }
 
-    predicate_env->set_universe(uni_data);
     for (const auto& action : transition_states->actions) {
-      if (check_precondition(s1, action)) {
+      if (check_precondition(s1, action, uni_data->sg.get())) {
         auto s1_copy           = space_->cloneState(s1);
         (*action_log)[s1_copy] = action;
         add_transition({u1, c1}, {u2, c2}, s1_copy->as<HashableStateSpace::StateType>(), action);
@@ -156,33 +154,44 @@ void UniverseMap::added_state(HashableStateSpace::StateType* state) {
   }
 }
 
-ActionDistribution::ValueData* const UniverseMap::sample() {
-  return distribution.sample(rng.uniform01());
+ActionDistribution::ValueData* UniverseMap::sample() {
+  ActionDistribution::ValueData* action = nullptr;
+  if (greedy_sample) {
+    action = distribution.sample_best();
+  } else {
+    action = distribution.sample(rng.uniform01());
+  }
+
+  IF_ACTION_LOG(graph_log->add_sample(action);)
+  return action;
 }
 
-UniverseMap::UniverseMap(const spec::Initial& init_atoms,
-                         HashableStateSpace::StateType* init_state,
-                         SceneGraph init_sg,
-                         spec::Goal* goal,
-                         spec::Domain* domain,
-                         ob::CompoundStateSpace* objects_space,
-                         ob::StateSpace* space,
-                         unsigned int eqclass_space_idx,
-                         unsigned int discrete_space_idx,
-                         unsigned int objects_space_idx,
-                         bool robot_base_movable)
-: num_eqclass_dims(domain->num_eqclass_dims)
-, num_discrete_dims(domain->num_symbolic_dims)
+UniverseMap::UniverseMap(
+const spec::Initial& init_atoms,
+HashableStateSpace::StateType* init_state,
+SceneGraph init_sg,
+const spec::Goal& goal,
+const spec::Domain& domain,
+ob::CompoundStateSpace* objects_space,
+ob::StateSpace* space_,
+unsigned int eqclass_space_idx,
+unsigned int discrete_space_idx,
+unsigned int objects_space_idx,
+bool robot_base_movable,
+IF_ACTION_LOG((std::shared_ptr<debug::GraphLog> graph_log, )) bool greedy_sample)
+: num_eqclass_dims(domain.num_eqclass_dims)
+, num_discrete_dims(domain.num_symbolic_dims)
 , eqclass_space_idx(eqclass_space_idx)
 , discrete_space_idx(discrete_space_idx)
 , base_movable(robot_base_movable)
-, space_(space) {
+, space_(space_) IF_ACTION_LOG((, graph_log(graph_log)))
+, greedy_sample(greedy_sample) {
   // Create predicate testing environment
   predicate_env =
-  std::make_unique<symbolic::predicate::LuaEnv<double>>("universe_map-predicate",
-                                                        symbolic::predicate::BOOL_PRELUDE_PATH);
-  predicate_env->load_predicates(domain->predicates_file);
-  for (const auto& action : domain->actions) {
+  std::make_unique<symbolic::predicate::LuaEnv<bool>>("universe_map-predicate",
+                                                      symbolic::predicate::BOOL_PRELUDE_PATH);
+  predicate_env->load_predicates(domain.predicates_file);
+  for (const auto& action : domain.actions) {
     for (auto& [formula, _] : action->precondition) {
       predicate_env->load_formula(&formula);
     }
@@ -191,10 +200,10 @@ UniverseMap::UniverseMap(const spec::Initial& init_atoms,
   UniverseSig init_universe(num_eqclass_dims, 0);
   ConfigSig init_config(num_discrete_dims, 0);
   for (const auto& dim : init_atoms) {
-    if (fplus::map_contains(domain->eqclass_dimension_ids, dim)) {
-      init_universe[domain->eqclass_dimension_ids.at(dim)] = true;
+    if (fplus::map_contains(domain.eqclass_dimension_ids, dim)) {
+      init_universe[domain.eqclass_dimension_ids.at(dim)] = true;
     } else {
-      init_config[domain->discrete_dimension_ids.at(dim)] = true;
+      init_config[domain.discrete_dimension_ids.at(dim)] = true;
     }
   }
 
@@ -223,7 +232,7 @@ UniverseMap::UniverseMap(const spec::Initial& init_atoms,
 
   // Make the heuristic
   heuristic = std::make_unique<symbolic::heuristic::FFLikeHeuristic>(
-  domain->actions, domain->typed_objects, *goal, domain);
+  domain.actions, domain.typed_objects, goal, &domain);
 
   // Add the initial sampleable actions
   add_actions(uni_data.get(), cf_data.get());
@@ -258,25 +267,27 @@ void UniverseMap::add_actions(Universe* uni, Config* cf) {
   }
 
   for (const auto& action : suggested_actions) {
+    IF_ACTION_LOG((graph_log->add_action(action.get(), uni->sig, cf->sig);))
     distribution.add(action->priority, std::make_tuple(uni, cf, action));
   }
 }
 
-void UniverseMap::clear(const spec::Initial& init_atoms,
+void UniverseMap::reset(const spec::Initial& init_atoms,
                         HashableStateSpace::StateType* init_state,
                         SceneGraph init_sg,
-                        spec::Domain* domain,
-                        spec::Goal* goal,
+                        const spec::Domain& domain,
+                        const spec::Goal& goal,
                         ob::CompoundStateSpace* objects_space,
                         unsigned int objects_space_idx) {
+  IF_ACTION_LOG(graph_log->clear();)
   graph.clear();
   UniverseSig init_universe(num_eqclass_dims, 0);
   ConfigSig init_config(num_discrete_dims, 0);
   for (const auto& dim : init_atoms) {
-    if (fplus::map_contains(domain->eqclass_dimension_ids, dim)) {
-      init_universe[domain->eqclass_dimension_ids.at(dim)] = true;
+    if (fplus::map_contains(domain.eqclass_dimension_ids, dim)) {
+      init_universe[domain.eqclass_dimension_ids.at(dim)] = true;
     } else {
-      init_config[domain->discrete_dimension_ids.at(dim)] = true;
+      init_config[domain.discrete_dimension_ids.at(dim)] = true;
     }
   }
 
@@ -305,7 +316,7 @@ void UniverseMap::clear(const spec::Initial& init_atoms,
 
   // Make the heuristic
   heuristic = std::make_unique<symbolic::heuristic::FFLikeHeuristic>(
-  domain->actions, domain->typed_objects, *goal, domain);
+  domain.actions, domain.typed_objects, goal, &domain);
 
   // Add the initial sampleable actions
   distribution.clear();

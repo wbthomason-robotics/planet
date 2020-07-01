@@ -5,7 +5,7 @@
 
 namespace structures::scenegraph {
 // namespace {
-//   auto log = spdlog::stdout_color_mt("scenegraph");
+//   auto log = spdlog::stdout_color_st("scenegraph");
 // }
 
 void Node::add_child(Node& child) {

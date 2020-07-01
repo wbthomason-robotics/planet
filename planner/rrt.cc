@@ -10,10 +10,11 @@
 
 namespace planner::rrt {
 namespace {
-  auto log = spdlog::stdout_color_mt("RRT");
+  auto log = spdlog::stdout_color_st("RRT");
 }
 
 util::UniverseMap* CompositeRRT::universe_map = nullptr;
+unsigned long num_too_far                     = 0;
 
 ob::PlannerStatus CompositeRRT::solve(const ob::PlannerTerminationCondition& ptc) {
   checkValidity();
@@ -68,6 +69,7 @@ ob::PlannerStatus CompositeRRT::solve(const ob::PlannerTerminationCondition& ptc
       // log->warn("{} is greater than {}. Interpolating!", d, maxDistance_);
       si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
       dstate = xstate;
+      ++num_too_far;
     }
 
     auto* action_data = dstate->as<util::HashableStateSpace::StateType>()->action;
@@ -76,6 +78,7 @@ ob::PlannerStatus CompositeRRT::solve(const ob::PlannerTerminationCondition& ptc
     if (si_->checkMotion(nmotion->state, dstate)) {
       if (action_data != nullptr) {
         action_data->update(std::get<2>(action_data->data)->update_success());
+        IF_ACTION_LOG(graph_log->update_success(action_data);)
       }
 
       if (addIntermediateStates_) {
@@ -116,6 +119,7 @@ ob::PlannerStatus CompositeRRT::solve(const ob::PlannerTerminationCondition& ptc
     } else {
       if (action_data != nullptr) {
         action_data->update(std::get<2>(action_data->data)->update_failure());
+        IF_ACTION_LOG(graph_log->update_failure(action_data);)
       }
       // log->warn("Invalid motion");
     }
@@ -154,4 +158,3 @@ ob::PlannerStatus CompositeRRT::solve(const ob::PlannerTerminationCondition& ptc
   return ob::PlannerStatus(solved, approximate);
 }
 }  // namespace planner::rrt
-

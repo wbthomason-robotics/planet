@@ -1,11 +1,11 @@
-#include "specification.hh"
+#include <fmt/format.h>
 
 #include <list>
 #include <regex>
 #include <stdexcept>
 
-#include <fmt/format.h>
 #include "fplus/fplus.hpp"
+#include "specification.hh"
 
 // clang-format off
 #include "spdlog/spdlog.h"
@@ -15,7 +15,7 @@
 namespace input::specification {
 namespace fwd = fplus::fwd;
 namespace {
-  auto log = spdlog::stdout_color_mt("specification");
+  auto log = spdlog::stdout_color_st("specification");
 
   auto convert_sexp(const sexpresso::Sexp& sexp) {
     // NOTE: We have to replace the \\\? pattern because of escaping sexpresso does. It also
@@ -280,7 +280,7 @@ bool Domain::handle_kin_effect(const DimId dimension_id,
   return true;
 }
 
-std::tuple<std::optional<Domain>, std::optional<Initial>, std::optional<Goal>>
+std::optional<std::tuple<Domain, Initial, Goal>>
 load(sexpresso::Sexp* domain_sexp, sexpresso::Sexp* problem_sexp, const Str& predicate_filename) {
   const Str separator = ", ";
   // Construct the domain
@@ -471,8 +471,8 @@ load(sexpresso::Sexp* domain_sexp, sexpresso::Sexp* problem_sexp, const Str& pre
 
     log->debug("Constructed domain");
   } catch (std::out_of_range& e) {
-    domain_result = std::nullopt;
     log->error("Failed to construct domain!");
+    return std::nullopt;
   }
 
   // Construct the initial conditions
@@ -494,8 +494,8 @@ load(sexpresso::Sexp* domain_sexp, sexpresso::Sexp* problem_sexp, const Str& pre
     log->debug("Constructed initial state");
     log->debug("Initial atoms: {}", fplus::show_cont(*init_result));
   } catch (std::out_of_range& e) {
-    init_result = std::nullopt;
     log->error("Failed to construct initial state!");
+    return std::nullopt;
   }
 
   // Construct the goal
@@ -533,10 +533,11 @@ load(sexpresso::Sexp* domain_sexp, sexpresso::Sexp* problem_sexp, const Str& pre
     }));
     log->info("Constructed goal with {} possible configuration sets", goal_result->size());
   } catch (std::out_of_range& e) {
-    goal_result = std::nullopt;
     log->error("Failed to construct goal!");
+    return std::nullopt;
   }
 
-  return {std::move(domain_result), init_result, goal_result};
+  return std::make_optional(
+  std::make_tuple(std::move(*domain_result), std::move(*init_result), std::move(*goal_result)));
 }
 }  // namespace input::specification

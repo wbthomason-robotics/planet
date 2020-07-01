@@ -2,18 +2,17 @@
 #ifndef DISCRETE_DISTRIBUTION_HH
 #define DISCRETE_DISTRIBUTION_HH
 
-#include "common.hh"
-
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <utility>
 
+#include "common.hh"
+
 namespace planner::util {
 template <typename V> struct DiscreteDistribution {
   struct ValueData {
-    ValueData(const double mass, const V& data, double* const sum)
-    : mass(mass), data(data), sum(sum) {}
+    ValueData(double mass, const V& data, double* const sum) : mass(mass), data(data), sum(sum) {}
     double mass = 0.0;
     V data;
     double* const sum;
@@ -45,7 +44,7 @@ template <typename V> struct DiscreteDistribution {
     sum = 0.0;
   }
 
-  void add(const double p, const V& v) {
+  void add(double p, const V& v) {
     sum += p;
     distribution.emplace_back(std::make_unique<ValueData>(p, v, &sum));
   }
@@ -54,7 +53,7 @@ template <typename V> struct DiscreteDistribution {
     // Insertion sort to maintain the sorted invariant. This is faster than std::sort (probably)
     // because the list is sorted except for (possibly) one element already, so running time
     // should be close to linear
-    for (int i = 1; i < distribution.size(); ++i) {
+    for (size_t i = 1; i < distribution.size(); ++i) {
       std::unique_ptr<ValueData> elem(distribution[i].release());
       int j = i - 1;
       while (j >= 0 && distribution[j]->mass > elem->mass) {
@@ -66,7 +65,7 @@ template <typename V> struct DiscreteDistribution {
     }
   }
 
-  ValueData* sample(const double s) {
+  ValueData* sample(double s) {
     // Ensure the sorted invariant
     sort();
 
@@ -83,6 +82,11 @@ template <typename V> struct DiscreteDistribution {
 
     // We're guaranteed to return before we get here: s\in [0, 1] and Union(over p\in
     // distribution) of [cumulative_prob_mass, cumulative_prob_mass + scaled_p] = [0, 1]
+  }
+
+  ValueData* sample_best() {
+    sort();
+    return distribution.back().get();
   }
 
  private:

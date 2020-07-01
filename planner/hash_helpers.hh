@@ -6,12 +6,6 @@
 #include <boost/dynamic_bitset.hpp>
 
 namespace std {
-template <typename B, typename A> struct hash<boost::dynamic_bitset<B, A>> {
-  size_t operator()(const boost::dynamic_bitset<B, A>& x) const {
-    return boost::hash_value(x.m_bits);
-  }
-};
-
 template <typename B, typename A>
 struct hash<pair<boost::dynamic_bitset<B, A>, boost::dynamic_bitset<B, A>>> {
   size_t
