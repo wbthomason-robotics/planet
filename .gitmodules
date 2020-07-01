@@ -19,9 +19,6 @@
 [submodule "lib/tinyobjloader"]
 	path = lib/tinyobjloader
 	url = git://github.com/syoyo/tinyobjloader.git
-[submodule "lua/libs/sci"]
-	path = lua/libs/sci
-	url = git://github.com/stepelu/lua-sci.git
 [submodule "lua/libs/xsys"]
 	path = lua/libs/xsys
 	url = git://github.com/stepelu/lua-xsys.git
