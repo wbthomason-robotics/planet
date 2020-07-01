@@ -28,3 +28,12 @@
 [submodule "lua/libs/sci"]
 	path = lua/libs/sci
 	url = https://github.com/wbthomason-robotics/lua-sci
+[submodule "lib/dbg-macro"]
+	path = lib/dbg-macro
+	url = https://github.com/sharkdp/dbg-macro
+[submodule "lib/expected"]
+	path = lib/expected
+	url = https://github.com/TartanLlama/expected
+[submodule "lib/patterns"]
+	path = lib/patterns
+	url = https://github.com/mpark/patterns
