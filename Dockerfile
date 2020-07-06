@@ -13,7 +13,7 @@ RUN git clone https://aur.archlinux.org/yay.git yay-build
 WORKDIR yay-build
 RUN makepkg --noconfirm --syncdeps --rmdeps --install --clean
 RUN yay -S --needed --noconfirm meson luajit clang spdlog cxxopts boost fmt ompl bullet nlopt \
-      urdfdom urdfdom-headers tinyxml2 eigen nlohmann-json
+      urdfdom urdfdom-headers tinyxml2 eigen nlohmann-json openblas
 USER root
 WORKDIR /
 RUN userdel -r build

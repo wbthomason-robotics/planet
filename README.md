@@ -18,13 +18,14 @@ installed.
 
 To build Planet natively, follow these steps:
 
-1. Install the following dependencies:
+1. Install the following dependencies (and their dependencies):
   - [`meson`](https://mesonbuild.com/)
   - [`luajit`](https://luajit.org/)
   - A reasonable C++17 compiler (this was built using Clang++ 10.0.0)
   - [`spdlog`](https://github.com/gabime/spdlog)
   - [`cxxopts`](https://github.com/jarro2783/cxxopts)
   - [`boost`](https://www.boost.org/)
+  - `OpenBLAS`
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
   - [`fmt`](https://github.com/fmtlib/fmt)
