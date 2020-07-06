@@ -7,7 +7,16 @@ Planning](https://wbthomason.github.io/papers/isrr2019_unifiedtamp.pdf).
 ## Fetching and Building
 
 This code is designed to be easy (relative to other research code) to install and use. To get it
-running, follow these steps:
+running, you have two options:
+
+### Docker
+
+You can use the `Dockerfile` in this repo to get a Docker image with Planet and its dependencies
+installed.
+
+### Native
+
+To build Planet natively, follow these steps:
 
 1. Install the following dependencies:
   - [`meson`](https://mesonbuild.com/)
