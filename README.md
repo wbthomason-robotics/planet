@@ -28,8 +28,7 @@ running, follow these steps:
   - [`tinyxml2`](https://github.com/leethomason/tinyxml2)
   - [`Eigen`](http://eigen.tuxfamily.org/index.php?title=Main_Page)
   - [`nlohmann_json`](https://github.com/nlohmann/json)
-2. Run `git clone https://github.com/cornell-rpal/planet && cd planet && git submodule update
-   --init --recursive` to get this code and its dependent submodules.
+2. Run `git clone https://github.com/wbthomason-robotics/planet && cd planet && git submodule update --init --recursive` to get this code and its dependent submodules.
 3. Run `./build.sh {debug, debugopt, release}` to build the various configurations of the `planet`
    binary (look at `build.sh` for some other options mostly useful for development). If you have the
    dependencies above installed, this should "just work".
