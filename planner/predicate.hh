@@ -1,7 +1,6 @@
 #pragma once
 #ifndef PREDICATE_HH
 #define PREDICATE_HH
-#include <armadillo>
 #include <memory>
 #include <optional>
 #include <utility>
