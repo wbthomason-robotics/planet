@@ -12,11 +12,10 @@ running, follow these steps:
 1. Install the following dependencies:
   - [`meson`](https://mesonbuild.com/)
   - [`luajit`](https://luajit.org/)
-  - A reasonable C++17 compiler (this was built using Clang++ 8.0.1)
+  - A reasonable C++17 compiler (this was built using Clang++ 10.0.0)
   - [`spdlog`](https://github.com/gabime/spdlog)
+  - [`cxxopts`](https://github.com/jarro2783/cxxopts)
   - [`boost`](https://www.boost.org/)
-    - Note that things will break right now with Boost 1.70; it doesn't play nice with OMPL or one
-      of the definitions in this code. This will be fixed once OMPL builds with the latest Boost
   - [`FunctionalPlus`](https://github.com/Dobiasd/FunctionalPlus)
   - [`cpptoml`](https://github.com/skystrife/cpptoml)
   - [`fmt`](https://github.com/fmtlib/fmt)
@@ -24,14 +23,10 @@ running, follow these steps:
   - [`tinyobjloader`](https://github.com/syoyo/tinyobjloader)
   - [`ompl`](https://ompl.kavrakilab.org/)
   - [`bullet`](https://github.com/bulletphysics/bullet3)
-  - [`OptimLib`](https://github.com/kthohr/optim)
-    - Note that this dependency will be changing to `nlopt` soon...
+  - [`nlopt`](https://github.com/stevengj/nlopt)
   - [`urdf`](https://github.com/ros/urdfdom)
   - [`tinyxml2`](https://github.com/leethomason/tinyxml2)
   - [`Eigen`](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-  - [`armadillo`](http://arma.sourceforge.net/)
-    - Note that this dependency will hopefully go away (replaced with Eigen) once the `nlopt` switch
-      happens
   - [`nlohmann_json`](https://github.com/nlohmann/json)
 2. Run `git clone https://github.com/cornell-rpal/planet && cd planet && git submodule update
    --init --recursive` to get this code and its dependent submodules.
