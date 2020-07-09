@@ -73,6 +73,6 @@ Planet is usable as a proof of concept. No claims are made about the quality of 
 performance, etc. Use at your own risk.
 
 ## TODO
-- [ ] Remove need for `sci-lua`/generally simplify Lua dependencies.
+- [x] Remove need for `sci-lua`/generally simplify Lua dependencies.
 - [ ] Implement syntactic transformation for handling negation
 - [ ] Profiling/rewrites for performance improvements
