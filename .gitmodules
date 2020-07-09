@@ -16,15 +16,6 @@
 [submodule "lib/tinyobjloader"]
 	path = lib/tinyobjloader
 	url = git://github.com/syoyo/tinyobjloader.git
-[submodule "lua/libs/xsys"]
-	path = lua/libs/xsys
-	url = git://github.com/stepelu/lua-xsys.git
-[submodule "lua/libs/sci-lang"]
-	path = lua/libs/sci-lang
-	url = git://github.com/stepelu/lua-sci-lang.git
-[submodule "lua/libs/sci"]
-	path = lua/libs/sci
-	url = https://github.com/wbthomason-robotics/lua-sci
 [submodule "lib/dbg-macro"]
 	path = lib/dbg-macro
 	url = https://github.com/sharkdp/dbg-macro
