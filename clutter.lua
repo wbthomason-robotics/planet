@@ -5,9 +5,7 @@ local Ge = Ge
 local sqrt = math.sqrt
 local abs = math.abs
 
-function on(x, y)
-  return And(Le(x.pz - y.pz, 0.15), Ge(x.pz - y.pz, 0.0))
-end
+function on(x, y) return And(Le(x.pz - y.pz, 0.15), Ge(x.pz - y.pz, 0.0)) end
 
 function above(m, s)
   -- Test if we're close enough to the SSSP of the surface
@@ -24,7 +22,7 @@ function above(m, s)
 end
 
 function at(m, x)
-  local distance = sqrt((m.px - x.px)^2.0 + (m.py - x.py)^2.0 + (m.pz - x.pz)^2.0)
+  local distance = sqrt((m.px - x.px) ^ 2.0 + (m.py - x.py) ^ 2.0 + (m.pz - x.pz) ^ 2.0)
   return Le(distance, AT_THRESHOLD)
 end
 
@@ -35,14 +33,8 @@ function manhattandist(x, y)
   return x_dist + y_dist + z_dist
 end
 
-function manhattanat(m, x)
-  return Le(manhattandist(m, x), AT_THRESHOLD)
-end
+function manhattanat(m, x) return Le(manhattandist(m, x), AT_THRESHOLD) end
 
-function donthit(l, o)
-  return Ge(manhattandist(l, o), 0.0)
-end
+function donthit(l, o) return Ge(manhattandist(l, o), 0.0) end
 
-function donthits(l, s)
-  return Ge(manhattandist(l, s), 0.0)
-end
+function donthits(l, s) return Ge(manhattandist(l, s), 0.0) end

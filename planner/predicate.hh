@@ -2,8 +2,6 @@
 #ifndef PREDICATE_HH
 #define PREDICATE_HH
 #include <memory>
-#include <optional>
-#include <utility>
 
 #include "common.hh"
 
@@ -24,18 +22,12 @@
 #include "specification.hh"
 #include "scenegraph.hh"
 #include "object.hh"
+#include "predicate-types.hh"
 
 namespace symbolic::predicate {
 constexpr char GRADIENT_PRELUDE_PATH[] = "lua/autodiff_prelude.lua";
 constexpr char UNSAT_PRELUDE_PATH[]    = "lua/unsat_prelude.lua";
 constexpr char BOOL_PRELUDE_PATH[]     = "lua/normal_prelude.lua";
-
-constexpr int OBJECT_DATA_SIZE         = 8;
-constexpr int OBJECT_METADATA_SIZE     = 3;
-constexpr int GRASP_FRAME_DATA_SIZE    = 7;
-constexpr int GRASP_TEMPLATE_DATA_SIZE = 2;
-constexpr char const* OBJECT_FIELD_NAMES[]{"px", "py", "pz", "rx", "ry", "rz", "rw"};
-constexpr int OBJ_STATE_SIZE = OBJECT_DATA_SIZE + OBJECT_METADATA_SIZE;
 
 extern const structures::object::ObjectSet* objects;
 extern const structures::object::ObjectSet* obstacles;
@@ -56,53 +48,33 @@ struct LuaEnvData {
 
   template <typename T> T call_formula(const spec::Formula& formula) const;
   template <> addn::DN call_formula(const spec::Formula& formula) const {
-    const auto start_top = lua_gettop(L);
-
-    // Run the formula
+    const auto start_top    = lua_gettop(L);
     const auto err_func_idx = call_helper(formula, start_top);
-
-    // Get the return value
-    lua_pushstring(L, "_v");
-    lua_gettable(L, -2);
-    const double v = lua_tonumber(L, -1);
-
-    lua_pushstring(L, "_a");
-    lua_gettable(L, -3);
-    const double a = lua_tonumber(L, -1);
-
-    // Clean up
+    const auto& result      = **static_cast<addn::DN**>(lua_touserdata(L, -1));
     cleanup_helper(start_top, err_func_idx);
-
-    return {v, a};
+    return result;
   }
 
   template <> bool call_formula(const spec::Formula& formula) const {
-    const auto start_top = lua_gettop(L);
-
-    // Run the formula
+    const auto start_top    = lua_gettop(L);
     const auto err_func_idx = call_helper(formula, start_top);
-
-    // Get the return value
-    const double v = lua_toboolean(L, -1);
-
-    // Clean up
+    const auto result       = lua_toboolean(L, -1);
     cleanup_helper(start_top, err_func_idx);
-
-    return v;
+    return result;
   }
 
   template <typename T> void update_object(const Str& name, const Transform3<T>& pose) const {
-    const auto& object_idx = binding_idx.find(name);
-    if (object_idx != binding_idx.end()) {
-      const auto idx = object_idx->second;
-      update_field(idx, OBJECT_FIELD_NAMES[0], pose.translation().x());
-      update_field(idx, OBJECT_FIELD_NAMES[1], pose.translation().y());
-      update_field(idx, OBJECT_FIELD_NAMES[2], pose.translation().z());
+    const auto& object_iter = binding_idx.find(name);
+    if (object_iter != binding_idx.end()) {
       Eigen::Quaternion<T> rotation(pose.linear());
-      update_field(idx, OBJECT_FIELD_NAMES[3], rotation.x());
-      update_field(idx, OBJECT_FIELD_NAMES[4], rotation.y());
-      update_field(idx, OBJECT_FIELD_NAMES[5], rotation.z());
-      update_field(idx, OBJECT_FIELD_NAMES[6], rotation.w());
+      auto object = static_cast<LuaLink<T>*>(object_iter->second);
+      object->px  = pose.translation().x();
+      object->py  = pose.translation().y();
+      object->pz  = pose.translation().z();
+      object->rx  = rotation.x();
+      object->ry  = rotation.y();
+      object->rz  = rotation.z();
+      object->rw  = rotation.w();
     }
   }
 
@@ -112,20 +84,20 @@ struct LuaEnvData {
                    structures::scenegraph::Graph* const sg) {
     binding_idx.clear();
     binding_idx.reserve(bindings.size());
-    // Make tables for each bound object in the same order as the formula will request them
-    for (int i = formula.bindings.size() - 1; i >= 0; --i) {
+    // Make userdata for each bound object in the same order as the formula will request them
+    auto binding = formula.bindings.rbegin();
+    for (; binding != formula.bindings.rend(); ++binding) {
       // NOTE(Wil): Are there variables in the formula bindings which may not be in the bindings
       // map? e.g. global names?
-      auto name                = formula.bindings[i];
+      auto name                = *binding;
       const auto& binding_iter = bindings.find(name);
       if (binding_iter != bindings.end()) {
         name = binding_iter->second;
       }
 
-      const auto idx = lua_gettop(L) + 1;
-      binding_idx.insert({name, idx});
       const auto& node = sg->find(name);
-      create_object<T>(node);
+      auto object      = create_object<T>(node);
+      binding_idx.insert({name, object});
     }
   }
 
@@ -134,29 +106,13 @@ struct LuaEnvData {
  protected:
   std::shared_ptr<spdlog::logger> log;
   lua_State* L;
-  void update_field(const int idx, const char* const field_name, const double value) const {
-    lua_pushstring(L, field_name);
-    lua_pushnumber(L, value);
-    lua_rawset(L, idx);
-  }
-
-  void update_field(const int idx, const char* const field_name, const addn::DN value) const {
-    lua_pushstring(L, field_name);
-    lua_pushstring(L, field_name);
-    lua_rawget(L, idx);
-    lua_pushstring(L, "_v");
-    lua_pushnumber(L, value.v);
-    lua_settable(L, -3);
-    lua_pushstring(L, "_a");
-    lua_pushnumber(L, value.a);
-    lua_settable(L, -3);
-    lua_rawset(L, idx);
-  }
-
-  Map<Str, int> binding_idx;
-  template <typename T> void create_object(const structures::scenegraph::Node& node) const {
+  Map<Str, void*> binding_idx;
+  template <typename T> LuaLink<T>* create_object(const structures::scenegraph::Node& node) const {
+    LuaLink<T>* link = nullptr;
     if (!node.is_object && !node.is_obstacle) {
-      lua_createtable(L, 0, OBJECT_DATA_SIZE);
+      link = static_cast<LuaLink<T>*>(lua_newuserdata(L, sizeof(LuaLink<T>)));
+      get_metatable<LuaLink<T>>(L);
+      lua_setmetatable(L, -2);
     } else {
       structures::object::Object* obj_data = nullptr;
       if (node.is_obstacle) {
@@ -165,37 +121,33 @@ struct LuaEnvData {
         obj_data = objects->at(node.name).get();
       }
 
-      lua_createtable(L, 0, OBJ_STATE_SIZE);
-      setup_metadata(obj_data);
+      LuaObject<T>* obj = static_cast<LuaObject<T>*>(lua_newuserdata(L, sizeof(LuaObject<T>)));
+      get_metatable<LuaObject<T>>(L);
+      lua_setmetatable(L, -2);
+      obj->object_data = obj_data;
+      if (obj_data->stable_face) {
+        obj->sssp.sssp = &*obj->object_data->stable_face;
+      } else {
+        obj->sssp.sssp = nullptr;
+      }
+
+      link = obj;
     }
 
-    lua_pushstring(L, "name");
-    lua_pushstring(L, node.name.c_str());
-    lua_rawset(L, -3);
-    setup_object<T>();
+    setup_link(link, node.name.c_str());
+    return link;
   }
 
-  template <typename T> void setup_object() const;
-  template <> void setup_object<addn::DN>() const {
-    for (int i = 0; i < 7; ++i) {
-      lua_pushstring(L, OBJECT_FIELD_NAMES[i]);
-      lua_getglobal(L, "dn");
-      lua_pushnumber(L, 0.0);
-      lua_pushnumber(L, 0.0);
-      lua_pcall(L, 2, 1, 0);
-      lua_rawset(L, -3);
-    }
+  template <typename T> void setup_link(LuaLink<T>* link, const char* name) const {
+    link->name = name;
+    link->px   = 0.0;
+    link->py   = 0.0;
+    link->pz   = 0.0;
+    link->rx   = 0.0;
+    link->ry   = 0.0;
+    link->rz   = 0.0;
+    link->rw   = 0.0;
   }
-
-  template <> void setup_object<double>() const {
-    for (int i = 0; i < 7; ++i) {
-      lua_pushstring(L, OBJECT_FIELD_NAMES[i]);
-      lua_pushnumber(L, 0.0);
-      lua_rawset(L, -3);
-    }
-  }
-
-  void setup_metadata(const structures::object::Object* const obj_data) const;
 
  private:
   int call_helper(const spec::Formula& formula, const int start_top) const;

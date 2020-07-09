@@ -1,7 +1,7 @@
-#include "scenegraph.hh"
-
 #include <algorithm>
 #include <stdexcept>
+
+#include "scenegraph.hh"
 
 namespace structures::scenegraph {
 // namespace {
@@ -24,33 +24,6 @@ void Node::remove_child(const Node& child) {
     }
   }
 }
-
-/// Deep-copy the scenegraph
-// Node* Node::copy(tsl::robin_map<Str, std::unique_ptr<Node>>& node_map) const {
-//   std::shared_ptr<CollisionShape> geom_copy(geom);
-//   auto self_copy =
-//   std::make_unique<Node>(name, type, transform, collision_transform, axis, geom_copy);
-//   self_copy->idx         = idx;
-//   self_copy->dn_cache    = dn_cache;
-//   self_copy->real_cache  = real_cache;
-//   self_copy->is_base     = is_base;
-//   self_copy->is_obstacle = is_obstacle;
-//   self_copy->is_object   = is_object;
-//   for (const auto& child : children) {
-//     self_copy->add_child(child->copy(node_map));
-//   }
-//
-//   const auto& [self_copy_it, _] = node_map.emplace(name, std::move(self_copy));
-//   return self_copy_it->second.get();
-// }
-
-// std::shared_ptr<Graph> Graph::copy() {
-//   auto result   = std::make_shared<Graph>();
-//   result->nodes = nodes;
-//   result->trees = trees;
-//
-//   return result;
-// }
 
 Node& Graph::add_node(int parent_idx, Node node) {
   auto& new_node    = nodes.emplace_back(node);
@@ -75,7 +48,6 @@ Node& Graph::extract(const Str& name) {
     trees.erase(tree_it);
   }
 
-  // nodes.erase(node_it);
   if (node.parent >= 0) {
     auto& parent = nodes[node.parent];
     parent.remove_child(node);
@@ -89,6 +61,8 @@ Node& Graph::find(const Str& name) {
   const auto idx = idx_index.at(name);
   return nodes[idx];
 }
+
+Node& Graph::get_node_at_idx(int idx) { return nodes[idx]; }
 
 void Graph::pose_objects(const Map<Str, Transform3r>& poses) {
   for (auto& tree_idx : trees) {

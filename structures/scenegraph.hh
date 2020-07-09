@@ -232,6 +232,7 @@ struct Graph {
   Map<Str, Node*> make_robot_nodes_map(const Map<Str, Str>& name_puns);
 
   Node& find(const Str& name);
+  Node& get_node_at_idx(int idx);
   template <typename T, typename F>
   void update_transforms(const T* const cont_vals,
                          const T* const joint_vals,
@@ -258,6 +259,7 @@ struct Graph {
   }
 
   void pose_objects(const Map<Str, Transform3r>& poses);
+  size_t get_num_nodes() { return nodes.size(); }
 
  private:
   Vec<int> trees;

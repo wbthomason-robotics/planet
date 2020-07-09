@@ -22,7 +22,7 @@ namespace {
     upper_bounds = std::make_unique<Vec<double>>(dim, 0.0);
     // TODO(Wil): Spooky scary global state
     const size_t bounds_size = cspace::workspace_bounds->low.size();
-    int offset            = 0;
+    int offset               = 0;
     if (robot_movable) {
       for (size_t i = 0; i < bounds_size; ++i) {
         lower_bounds->at(i) = cspace::workspace_bounds->low.at(i);
@@ -80,6 +80,67 @@ namespace {
   };
 }  // namespace
 
+double grad_fn(const Vec<double>& inp_val, Vec<double>& grad_out, void* f_data) {
+  auto* data = static_cast<OptData*>(f_data);
+  auto& [diff_state, robot, base_tf, sg, cont_vals, joint_vals, grad_env, formula] = *data;
+  // Convert to DNs
+  for (size_t i = 0; i < diff_state.size(); ++i) {
+    diff_state[i] = inp_val[i];
+  }
+
+  if (robot->base_movable) {
+    pred::make_base_tf(diff_state, base_tf);
+  }
+
+  addn::DN diff_result;
+  // Update the pose cache
+  if (!grad_out.empty()) {
+    sg->update_transforms(cont_vals,
+                          joint_vals,
+                          base_tf,
+                          [](const structures::scenegraph::Node* const node,
+                             const bool new_value,
+                             const Transform3<addn::DN>& pose,
+                             const Transform3r& coll_pose) {});
+    // Compute each component of the gradient
+    for (size_t i = 0; i < diff_state.size(); ++i) {
+      diff_state[i].a = 1.0;
+      // Rebuild the base pose when we're computing those components of the gradient, then once
+      // after to set it back to normal
+      if (robot->base_movable && i <= 4) {
+        pred::make_base_tf(diff_state, base_tf);
+      }
+
+      sg->update_transforms(
+      cont_vals,
+      joint_vals,
+      base_tf,
+      [&](const structures::scenegraph::Node* const node,
+          const bool new_value,
+          const Transform3<addn::DN>& pose,
+          const Transform3r& coll_pose) { data->grad_env.update_object(node->name, pose); },
+      false);
+
+      diff_result     = grad_env.call_formula<addn::DN>(formula);
+      grad_out[i]     = diff_result.a;
+      diff_state[i].a = 0.0;
+    }
+  } else {
+    sg->update_transforms(cont_vals,
+                          joint_vals,
+                          base_tf,
+                          [&](const structures::scenegraph::Node* const node,
+                              const bool new_value,
+                              const Transform3<addn::DN>& pose,
+                              const Transform3r& coll_pose) {
+                            data->grad_env.update_object(node->name, pose);
+                          });
+    diff_result = grad_env.call_formula<addn::DN>(formula);
+  }
+
+  return diff_result.v;
+}
+
 bool gradient_solve(const ob::StateSpace* const space,
                     pred::LuaEnv<double>& grad_env,
                     const structures::robot::Robot* const robot,
@@ -106,71 +167,6 @@ bool gradient_solve(const ob::StateSpace* const space,
   const addn::DN* const joint_vals = cont_vals + cspace::cont_joint_idxs.size();
 
   Transform3<addn::DN> base_tf(*(robot->base_pose));
-  auto grad_fn = [](const Vec<double>& inp_val, Vec<double>& grad_out, void* f_data) -> double {
-    auto* data = static_cast<OptData*>(f_data);
-    auto& [diff_state, robot, base_tf, sg, cont_vals, joint_vals, grad_env, formula] = *data;
-    // Convert to DNs
-    for (size_t i = 0; i < diff_state.size(); ++i) {
-      diff_state[i] = inp_val[i];
-    }
-
-    if (robot->base_movable) {
-      pred::make_base_tf(diff_state, base_tf);
-    }
-
-    // Update the pose cache
-    if (!grad_out.empty()) {
-      sg->update_transforms(cont_vals,
-                            joint_vals,
-                            base_tf,
-                            [](const structures::scenegraph::Node* const node,
-                               const bool new_value,
-                               const Transform3<addn::DN>& pose,
-                               const Transform3r& coll_pose) {});
-    } else {
-      sg->update_transforms(cont_vals,
-                            joint_vals,
-                            base_tf,
-                            [&](const structures::scenegraph::Node* const node,
-                                const bool new_value,
-                                const Transform3<addn::DN>& pose,
-                                const Transform3r& coll_pose) {
-                              data->grad_env.update_object(node->name, pose);
-                            });
-    }
-
-    addn::DN diff_result;
-    if (!grad_out.empty()) {
-      // Compute each component of the gradient
-      for (size_t i = 0; i < diff_state.size(); ++i) {
-        diff_state[i].a = 1.0;
-        // Rebuild the base pose when we're computing those components of the gradient, then once
-        // after to set it back to normal
-        if (robot->base_movable && i <= 4) {
-          pred::make_base_tf(diff_state, base_tf);
-        }
-
-        sg->update_transforms(
-        cont_vals,
-        joint_vals,
-        base_tf,
-        [&](const structures::scenegraph::Node* const node,
-            const bool new_value,
-            const Transform3<addn::DN>& pose,
-            const Transform3r& coll_pose) { data->grad_env.update_object(node->name, pose); },
-        false);
-
-        diff_result     = grad_env.call_formula<addn::DN>(formula);
-        grad_out[i]     = diff_result.a;
-        diff_state[i].a = 0.0;
-      }
-    } else {
-      diff_result = grad_env.call_formula<addn::DN>(formula);
-    }
-
-    return diff_result.v;
-  };
-
   nlopt::opt opt_problem(nlopt::AUGLAG, state.size());
   OptData opt_data(diff_state, robot, base_tf, sg, cont_vals, joint_vals, grad_env, formula);
   opt_problem.set_min_objective(grad_fn, &opt_data);

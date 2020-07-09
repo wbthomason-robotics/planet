@@ -1,30 +1,36 @@
 #pragma once
 
-#include "common.hh"
+#include <bullet/btBulletCollisionCommon.h>
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <variant>
 
-#include <bullet/btBulletCollisionCommon.h>
-
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-
+#include "common.hh"
 #include "scenegraph.hh"
 
 namespace structures::object {
 struct DiscreteGrasp {
-  DiscreteGrasp(const Transform3r& frame) : frame(frame) {}
+  DiscreteGrasp(const Transform3r& frame)
+  : frame(frame), translation(frame.translation()), rotation(frame.linear()) {}
   const Transform3r frame;
+  const Vector3r translation;
+  const Eigen::Quaterniond rotation;
 };
 
 struct ContinuousGrasp {
   ContinuousGrasp(const Transform3r& template_frame, Vector3r axis)
-  : template_frame(template_frame), axis(std::move(axis)) {}
+  : template_frame(template_frame)
+  , axis(std::move(axis))
+  , translation(template_frame.translation())
+  , rotation(template_frame.linear()) {}
   const Transform3r template_frame;
   const Vector3r axis;
+  const Vector3r translation;
+  const Eigen::Quaterniond rotation;
 };
 
 struct Bounds {
@@ -35,8 +41,10 @@ struct Bounds {
 
 struct StableRegion {
   StableRegion(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max)
-  : bounds({{"x", {x_min, x_max}}, {"y", {y_min, y_max}}, {"z", {z_min, z_max}}}) {}
-  const Map<Str, Bounds> bounds;
+  : x({x_min, x_max}), y({y_min, y_max}), z({z_min, z_max}) {}
+  const Bounds x;
+  const Bounds y;
+  const Bounds z;
 };
 
 using StablePlane = Vec<Vector3r>;
@@ -57,6 +65,7 @@ struct Object {
   Object(Str name, const bool movable) : movable(movable), name(std::move(name)), geom(nullptr) {}
   const bool movable;
   const Str name;
+  int node_idx;
   std::shared_ptr<CollisionShape> geom;
   CollisionTransform initial_pose;
   Vec<Grasp> grasps;

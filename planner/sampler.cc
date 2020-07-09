@@ -21,9 +21,9 @@ std::mutex counter_mutex;
 
 util::UniverseMap* TampSampler::universe_map = nullptr;
 std::mutex TampSampler::universe_mutex;
-unsigned int TampSampler::sampler_count = 0;
+unsigned int TampSampler::sampler_count    = 0;
 unsigned int TampSampler::NUM_SOLVER_TRIES = 0;
-double TampSampler::COIN_BIAS           = 0.0;
+double TampSampler::COIN_BIAS              = 0.0;
 
 ob::StateSamplerPtr allocTampSampler(const ob::StateSpace* space,
                                      const spec::Domain* const domain,
@@ -313,33 +313,16 @@ void TampSampler::heuristic_sample(ob::State* state) {
     ordinary_sample_with_uni(state, uni, cf, true, false);
     ++sample_counter.uniformNormal;
     return;
-    // log->critical("Created invalid state:\n");
-    // objects_space->printState(new_pose_state, std::cout);
-    // std::ofstream json_file("invalid_state.json");
-    // json output;
-    // for (const auto& [name, pose] : pose_map) {
-    //   Eigen::Quaterniond rotation(pose.linear());
-    //   output.emplace_back(json{
-    //   {"name", name},
-    //   {"translation", {pose.translation().x(), pose.translation().y(), pose.translation().z()}},
-    //   {"rotation", {rotation.x(), rotation.y(), rotation.z(), rotation.w()}}});
-    // }
-    //
-    // json_file << output;
-    // json_file.close();
-    // throw std::runtime_error("Well fuck");
   }
 
   // Update the maps
   auto state_copy = space_->cloneState(state);
   action_log->emplace(state_copy, action.get());
-
   const auto& [new_uni_data, new_cf_data] =
   universe_map->add_transition({uni->sig, cf->sig},
                                {new_universe, new_config},
                                state_copy->as<util::HashableStateSpace::StateType>(),
                                action.get());
-  // log->info("Taking action {}({}) succeeded", action->action->name, action->bindings);
   if (new_uni_data->sg == nullptr) {
     auto new_sg              = std::make_shared<structures::scenegraph::Graph>(*uni->sg);
     const auto& universe_sig = uni->sig;

@@ -1,25 +1,29 @@
-#include <Eigen/Core>
-#include <mpark/patterns.hpp>
 #include <stdexcept>
 
 #include "cspace.hh"
 #include "fmt/format.h"
 #include "predicate.hh"
+#include "predicate-impl.hh"
 
 constexpr char TRACEBACK_NAME[] = "err_func";
 static int traceback(lua_State* L) {
-  if (!lua_isstring(L, 1))  // 'message' not a string?
-    return 1;               // Keep it intact
+  // 'message' not a string?
+  if (!lua_isstring(L, 1)) {
+    return 1;                 // Keep it intact
+  }
+
   lua_getfield(L, LUA_GLOBALSINDEX, "debug");
   if (!lua_istable(L, -1)) {
     lua_pop(L, 1);
     return 1;
   }
+
   lua_getfield(L, -1, "traceback");
   if (!lua_isfunction(L, -1)) {
     lua_pop(L, 2);
     return 1;
   }
+
   lua_pushvalue(L, 1);    // Pass error message
   lua_pushinteger(L, 2);  // Skip this function and traceback
   lua_call(L, 2, 1);      // Call debug.traceback
@@ -44,8 +48,8 @@ namespace symbolic::predicate {
 const structures::object::ObjectSet* objects   = nullptr;
 const structures::object::ObjectSet* obstacles = nullptr;
 namespace cspace                               = planner::cspace;
+
 namespace {
-  constexpr char const* dim_names[]{"x", "y", "z"};
   void load_c_fns(lua_State* L) {
     lua_pushcfunction(L, traceback);
     lua_setglobal(L, TRACEBACK_NAME);
@@ -54,54 +58,8 @@ namespace {
     luaJIT_setmode(L, -1, LUAJIT_MODE_WRAPCFUNC | LUAJIT_MODE_ON);
     lua_pop(L, 1);
 #endif
-  }
-
-  void push_pos(lua_State* L, const Vector3r& pos, const char* const name) {
-    if (name != nullptr) {
-      lua_pushstring(L, name);
-    }
-
-    lua_createtable(L, 0, 3);
-    for (int i = 0; i < 3; ++i) {
-      lua_pushstring(L, dim_names[i]);
-      lua_pushnumber(L, pos(i));
-      lua_rawset(L, -3);
-    }
-
-    if (name != nullptr) {
-      // NOTE: This assumes there's a table on the stack ready for the position field just behind
-      // the start position
-      lua_rawset(L, -3);
-    }
-  }
-
-  void push_quat(lua_State* L, const Eigen::Quaterniond& quat, const char* const name) {
-    if (name != nullptr) {
-      lua_pushstring(L, name);
-    }
-
-    lua_createtable(L, 0, 4);
-    lua_pushstring(L, "x");
-    lua_pushnumber(L, quat.x());
-    lua_rawset(L, -3);
-
-    lua_pushstring(L, "y");
-    lua_pushnumber(L, quat.y());
-    lua_rawset(L, -3);
-
-    lua_pushstring(L, "z");
-    lua_pushnumber(L, quat.z());
-    lua_rawset(L, -3);
-
-    lua_pushstring(L, "w");
-    lua_pushnumber(L, quat.w());
-    lua_rawset(L, -3);
-
-    if (name != nullptr) {
-      // NOTE: This assumes there's a table on the stack ready for the position field just behind
-      // the start position
-      lua_rawset(L, -3);
-    }
+    load_metatables(L);
+    load_math_lib(L);
   }
 }  // namespace
 
@@ -228,135 +186,11 @@ void LuaEnvData::teardown_world(const spec::Formula& formula) const {
   lua_pop(L, formula.bindings.size());
 }
 
-void LuaEnvData::setup_metadata(const structures::object::Object* const obj_data) const {
-  using namespace mpark::patterns;
-  namespace obj = structures::object;
-  // SSSP
-  lua_pushstring(L, "sssp");
-  if (obj_data->stable_face) {
-    lua_createtable(L, 0, 2);
-    match (*obj_data->stable_face)(
-    pattern(as<obj::StableRegion>(arg)) =
-    [&](const auto& region) {
-      // Set plane to nil
-      lua_pushstring(L, "plane");
-      lua_pushnil(L);
-      lua_rawset(L, -3);
-
-      lua_pushstring(L, "region");
-      lua_createtable(L, 0, 3);
-      for (const auto& name : dim_names) {
-        lua_pushstring(L, name);
-        lua_createtable(L, 0, 2);
-
-        lua_pushstring(L, "low");
-        lua_pushnumber(L, region.bounds.at(name).low);
-        lua_rawset(L, -3);
-
-        lua_pushstring(L, "high");
-        lua_pushnumber(L, region.bounds.at(name).high);
-        lua_rawset(L, -3);
-
-        // Sets the bounds table as the item for the key $name in the region table
-        lua_rawset(L, -3);
-      }
-
-      // Sets the table of bounds as the item for the key "region" in the object data table
-      lua_rawset(L, -3);
-    },
-    pattern(as<obj::StablePlane>(arg)) =
-    [&](const auto& plane_vecs) {
-      // Set region to nil
-      lua_pushstring(L, "region");
-      lua_pushnil(L);
-      lua_rawset(L, -3);
-
-      // Setup the plane representation
-      lua_pushstring(L, "plane");
-      lua_createtable(L, plane_vecs.size(), 0);
-      for (size_t i = 0; i < plane_vecs.size(); ++i) {
-        const auto& vec = plane_vecs[i];
-        push_pos(L, vec, nullptr);
-        lua_rawseti(L, -2, i + 1);
-      }
-
-      lua_rawset(L, -3);
-    });
-  } else {
-    lua_pushnil(L);
-  }
-
-  lua_rawset(L, -3);
-
-  // SOP
-  lua_pushstring(L, "sop");
-  const auto& sops = obj_data->stable_poses;
-  lua_createtable(L, sops.size(), 0);
-  for (size_t i = 0; i < sops.size(); ++i) {
-    lua_createtable(L, 0, 3);
-    const Vector3r& axis          = sops[i].axis;
-    const Eigen::Quaterniond& rot = sops[i].template_rotation;
-    const double distance         = sops[i].distance;
-    push_pos(L, axis, "axis");
-    push_quat(L, rot, "rot");
-
-    lua_pushstring(L, "d");
-    lua_pushnumber(L, distance);
-    lua_rawset(L, -3);
-
-    lua_rawseti(L, -2, i + 1);
-  }
-
-  lua_rawset(L, -3);
-
-  // Grasps
-  lua_pushstring(L, "grasps");
-  const auto& grasps = obj_data->grasps;
-  lua_createtable(L, grasps.size(), 0);
-  for (size_t i = 0; i < grasps.size(); ++i) {
-    lua_createtable(L, 0, 2);
-    const auto& grasp = grasps[i];
-    lua_pushstring(L, "discrete");
-    match(grasp)(
-    pattern(as<obj::DiscreteGrasp>(arg)) =
-    [&](const auto& grasp_data) {
-      lua_createtable(L, 0, 2);
-      const auto& grasp_frame = grasp_data.frame;
-      const Vector3r& pos     = grasp_frame.translation();
-      const Eigen::Quaterniond rot(grasp_frame.linear());
-      push_pos(L, pos, "pos");
-      push_quat(L, rot, "rot");
-      lua_rawset(L, -3);
-
-      lua_pushstring(L, "continuous");
-      lua_pushnil(L);
-      lua_rawset(L, -3);
-    },
-    pattern(as<obj::ContinuousGrasp>(arg)) =
-    [&](const auto& grasp_data) {
-      lua_pushnil(L);
-      lua_rawset(L, -3);
-      lua_pushstring(L, "continuous");
-      lua_createtable(L, 0, 3);
-      const auto& [grasp_frame, grasp_axis] = grasp_data;
-      const Vector3r& pos                   = grasp_frame.translation();
-      const Eigen::Quaterniond rot(grasp_frame.linear());
-
-      push_pos(L, pos, "pos");
-      push_quat(L, rot, "rot");
-      push_pos(L, grasp_axis, "axis");
-
-      lua_rawset(L, -3);
-    });
-
-    lua_rawseti(L, -2, i + 1);
-  }
-
-  lua_rawset(L, -3);
-}
-
 void LuaEnvData::cleanup() const { lua_gc(L, LUA_GCCOLLECT, 0); }
 int LuaEnvData::call_helper(const spec::Formula& formula, const int start_top) const {
+  init_dn_block();
+  clear_dn_block();
+
   // Push traceback
   lua_getglobal(L, TRACEBACK_NAME);
   const int err_func_idx = lua_gettop(L);
@@ -378,6 +212,7 @@ int LuaEnvData::call_helper(const spec::Formula& formula, const int start_top) c
     throw std::runtime_error(
     fmt::format("Failed to call {} for gradient: {}", formula.name, err_msg));
   }
+
   return err_func_idx;
 }
 

@@ -2,14 +2,8 @@
 -- TODO/NOTE: Some of these derivatives - namely Eq, And, and Or - are discontinuous, so we use
 -- smooth approximations
 
-package.path = package.path .. ';lua/libs/?.lua;lua/libs/?/init.lua;lua/libs/?/__init.lua;lua/libs/?/?.lua'
-
-math = require('sci.math').generic
-diff = require('sci.diff')
-alg  = require('sci.alg')
-
--- The dual number type used by diff, to make it easier to construct new objects from C++
-dn = diff.dn
+math = dnmath
+-- inspect = require('inspect')
 
 -- A tiny number used as epsilon
 eps = 0.0000000000000001

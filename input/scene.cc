@@ -535,15 +535,16 @@ load(const Str& scene_path, const Str& obj_dir) {
       auto name = obj.name;
       Node node(
       name, Node::Type::FIXED, eigen_pose, Transform3r::Identity(), Vector3r::Zero(), obj.geom);
+      auto& sg_node = scenegraph->add_node(-1, node);
+      obj.node_idx = sg_node.self_idx;
       if (obj.movable) {
         objects.emplace(name, std::make_shared<Object>(std::move(obj)));
-        node.is_object = true;
+        sg_node.is_object = true;
       } else {
         obstacles.emplace(name, std::make_shared<Object>(std::move(obj)));
-        node.is_obstacle = true;
+        sg_node.is_obstacle = true;
       }
 
-      scenegraph->add_node(-1, node);
       object_node = object_node->NextSiblingElement("obj");
     }
   } else {
